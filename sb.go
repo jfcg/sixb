@@ -72,3 +72,10 @@ func Is2bs(y []uint64) (x []byte) {
 	t.Cap = t.Len
 	return
 }
+
+//	Creates an identical copy
+func Copy(x []byte) []byte {
+	r := make([]byte, len(x))
+	copy(r, x)
+	return r
+}
