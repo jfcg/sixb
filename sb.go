@@ -62,3 +62,13 @@ func Bs2is(x []byte) (y []uint64) {
 	s.Cap = s.Len
 	return
 }
+
+//	Convert int slice to byte slice
+func Is2bs(y []uint64) (x []byte) {
+	s := (*slice)(unsafe.Pointer(&y))
+	t := (*slice)(unsafe.Pointer(&x))
+	t.Data = s.Data
+	t.Len = s.Len << 3
+	t.Cap = t.Len
+	return
+}

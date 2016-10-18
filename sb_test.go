@@ -32,6 +32,10 @@ func Test2(t *testing.T) {
 	x := []byte("qwert12345")
 	y := Bs2is(x)
 	if len(y) != 1 || cap(y) != 1 || y[0] != 3689065420975077233 {
-		t.Fatal("Set error")
+		t.Fatal("slice conversion error")
+	}
+	z := Is2bs(y)
+	if len(z) != 8 || cap(z) != 8 || &z[0] != &x[0] {
+		t.Fatal("slice conversion error")
 	}
 }
