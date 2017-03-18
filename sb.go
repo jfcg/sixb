@@ -3,11 +3,12 @@ package sixb
 
 import "unsafe"
 
-// A quick & dirty Text-to-Int function for short text inputs.
-func Txt2int(s string) (x uint64) {
-	for i := 0; i < len(s); i++ {
-		x = x<<7 ^ x>>57
-		x += uint64(s[i] - ' ')
+//	A quick & dirty Text-to-Int function for short text inputs.
+func Txt2int(s string) uint64 {
+	x := uint64(len(s))
+	for i := len(s) - 1; i >= 0; i-- {
+		x = x<<15 ^ x>>49
+		x += uint64(s[i])
 	}
 	return x
 }
@@ -53,7 +54,7 @@ type slice struct { // not worth importing reflect
 	Len, Cap int
 }
 
-//	Convert byte slice to int slice
+//	Converts byte slice to int slice.
 func Bs2is(x []byte) (y []uint64) {
 	s := (*slice)(unsafe.Pointer(&y))
 	t := (*slice)(unsafe.Pointer(&x))
@@ -63,7 +64,7 @@ func Bs2is(x []byte) (y []uint64) {
 	return
 }
 
-//	Convert int slice to byte slice
+//	Converts int slice to byte slice.
 func Is2bs(y []uint64) (x []byte) {
 	s := (*slice)(unsafe.Pointer(&y))
 	t := (*slice)(unsafe.Pointer(&x))
@@ -73,7 +74,7 @@ func Is2bs(y []uint64) (x []byte) {
 	return
 }
 
-//	Creates an identical copy
+//	Creates an identical copy.
 func Copy(x []byte) []byte {
 	r := make([]byte, len(x))
 	copy(r, x)
