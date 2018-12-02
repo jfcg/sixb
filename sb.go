@@ -49,34 +49,97 @@ func Sb2an(x byte) byte {
 	return x + 97
 }
 
-type slice struct { // not worth importing reflect
-	Data     uintptr
-	Len, Cap int
-}
-
-//	Converts byte slice to int slice.
-func Bs2is(x []byte) (y []uint64) {
-	s := (*slice)(unsafe.Pointer(&y))
-	t := (*slice)(unsafe.Pointer(&x))
-	s.Data = t.Data
-	s.Len = t.Len >> 3
-	s.Cap = s.Len
-	return
-}
-
-//	Converts int slice to byte slice.
-func Is2bs(y []uint64) (x []byte) {
-	s := (*slice)(unsafe.Pointer(&y))
-	t := (*slice)(unsafe.Pointer(&x))
-	t.Data = s.Data
-	t.Len = s.Len << 3
-	t.Cap = t.Len
-	return
-}
-
 //	Creates an identical copy.
 func Copy(x []byte) []byte {
 	r := make([]byte, len(x))
 	copy(r, x)
 	return r
+}
+
+type str struct { // not worth importing reflect
+	Data uintptr
+	Len  int
+}
+
+type slice struct {
+	str
+	Cap int
+}
+
+//	Converts byte slice to int slice.
+func BtI4(b []byte) (i []uint32) {
+	I := (*slice)(unsafe.Pointer(&i))
+	B := (*slice)(unsafe.Pointer(&b))
+	I.Data = B.Data
+	I.Len = B.Len >> 2
+	I.Cap = I.Len
+	return
+}
+
+//	Converts int slice to byte slice.
+func I4tB(i []uint32) (b []byte) {
+	I := (*slice)(unsafe.Pointer(&i))
+	B := (*slice)(unsafe.Pointer(&b))
+	B.Data = I.Data
+	B.Len = I.Len << 2
+	B.Cap = B.Len
+	return
+}
+
+//	Converts byte slice to int slice.
+func BtI8(b []byte) (i []uint64) {
+	I := (*slice)(unsafe.Pointer(&i))
+	B := (*slice)(unsafe.Pointer(&b))
+	I.Data = B.Data
+	I.Len = B.Len >> 3
+	I.Cap = I.Len
+	return
+}
+
+//	Converts int slice to byte slice.
+func I8tB(i []uint64) (b []byte) {
+	I := (*slice)(unsafe.Pointer(&i))
+	B := (*slice)(unsafe.Pointer(&b))
+	B.Data = I.Data
+	B.Len = I.Len << 3
+	B.Cap = B.Len
+	return
+}
+
+//	Converts string to int slice.
+func StI4(s string) (i []uint32) {
+	I := (*slice)(unsafe.Pointer(&i))
+	S := (*str)(unsafe.Pointer(&s))
+	I.Data = S.Data
+	I.Len = S.Len >> 2
+	I.Cap = I.Len
+	return
+}
+
+//	Converts int slice to string.
+func I4tS(i []uint32) (s string) {
+	I := (*slice)(unsafe.Pointer(&i))
+	S := (*str)(unsafe.Pointer(&s))
+	S.Data = I.Data
+	S.Len = I.Len << 2
+	return
+}
+
+//	Converts string to int slice.
+func StI8(s string) (i []uint64) {
+	I := (*slice)(unsafe.Pointer(&i))
+	S := (*str)(unsafe.Pointer(&s))
+	I.Data = S.Data
+	I.Len = S.Len >> 3
+	I.Cap = I.Len
+	return
+}
+
+//	Converts int slice to string.
+func I8tS(i []uint64) (s string) {
+	I := (*slice)(unsafe.Pointer(&i))
+	S := (*str)(unsafe.Pointer(&s))
+	S.Data = I.Data
+	S.Len = I.Len << 3
+	return
 }
