@@ -5,8 +5,11 @@ import "testing"
 func Test1(t *testing.T) {
 	for i := 255; i >= 0; i-- {
 		c := byte(i)
-		d := An2sb(c)
-		if c != Sb2an(d) {
+		d := An2sb[c]
+		if c == d {
+			t.Fatal("fixed point", i)
+		}
+		if c != Sb2an[d] {
 			t.Fatal("inverse does not work", i)
 		}
 	}
@@ -14,7 +17,7 @@ func Test1(t *testing.T) {
 	l := "0:@Zaz"
 	for i := 4; i >= 0; i -= 2 {
 		for c := l[i]; c <= l[i+1]; c++ {
-			if An2sb(c) > 63 {
+			if An2sb[c] > 63 {
 				t.Fatal("domain error", c)
 			}
 		}
