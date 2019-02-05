@@ -7,7 +7,7 @@ import "unsafe"
 func Txt2int(s string) uint64 {
 	x := uint64(len(s))
 	for i := len(s) - 1; i >= 0; i-- {
-		x = x<<15 ^ x>>49
+		x = x<<27 ^ x>>37
 		x += uint64(s[i])
 	}
 	return x
