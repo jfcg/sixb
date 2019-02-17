@@ -1,7 +1,49 @@
 package sixb
 
-import "testing"
+import (
+	"github.com/jfcg/sorty"
+	"testing"
+)
 
+// Txt2int collision test
+func Test0(t *testing.T) {
+	const N = 3 << 27
+	hl := make([]uint64, N)  // hash list: 3 GiB ram
+	bf := []byte{0, 0, 0, 0} // input buffer
+
+	// fill hl with hashes of short utf8 text
+	for i, l := N-1, 0; i >= 0; i-- {
+		hl[i] = Txt2int(string(bf[:l]))
+
+		// next utf8-ish input
+		for k := 0; ; k++ {
+			if bf[k] == 0 {
+				l++ // increase input length
+			}
+			bf[k]++
+
+			if bf[k] != 0 {
+				break
+			}
+			bf[k]++ // continue with carry
+		}
+	}
+
+	sorty.Ar = hl // sort hl
+	sorty.Sort()
+
+	k := 0 // count collisions
+	for i := N - 1; i > 0; i-- {
+		if hl[i] == hl[i-1] {
+			k++
+		}
+	}
+	if k > 0 {
+		t.Fatal("Txt2int has", k, "collisions")
+	}
+}
+
+// An2sb & Sb2an bijection & domain
 func Test1(t *testing.T) {
 	for i := 255; i >= 0; i-- {
 		c := byte(i)
@@ -24,6 +66,7 @@ func Test1(t *testing.T) {
 	}
 }
 
+// Slice conversions
 func Test2(t *testing.T) {
 	v := "qwert123"
 	w := v + "45"

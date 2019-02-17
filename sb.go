@@ -3,12 +3,14 @@ package sixb
 
 import "unsafe"
 
-//	A quick & dirty Text-to-Int function for short text inputs.
+const prm = 11400714819323198549 // closest prime to 2^64 / golden_ratio
+
+//	A quick & collision-resilient hash function for short utf8 text inputs.
 func Txt2int(s string) uint64 {
-	x := uint64(len(s))
+	x := uint64(len(s)) * prm
 	for i := len(s) - 1; i >= 0; i-- {
-		x = x<<27 ^ x>>37
 		x += uint64(s[i])
+		x *= prm
 	}
 	return x
 }
