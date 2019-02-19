@@ -39,7 +39,7 @@ func Test0(t *testing.T) {
 		}
 	}
 	if k > 0 {
-		t.Fatal("Txt2int has", k, "collisions")
+		t.Fatal("Txt2int has at least", k, "collisions for short utf8 inputs")
 	}
 }
 

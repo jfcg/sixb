@@ -3,14 +3,14 @@ package sixb
 
 import "unsafe"
 
-const prm = 11400714819323198549 // closest prime to 2^64 / golden_ratio
+const Prime = 11400714819323198549 // closest prime to 2^64 / golden_ratio
 
 //	A quick & collision-resilient hash function for short utf8 text inputs.
 func Txt2int(s string) uint64 {
-	x := uint64(len(s)) * prm
+	x := uint64(len(s)) * Prime
 	for i := len(s) - 1; i >= 0; i-- {
-		x += uint64(s[i])
-		x *= prm
+		x ^= uint64(s[i])
+		x *= Prime
 	}
 	return x
 }
@@ -28,89 +28,91 @@ func Copy(x []byte) []byte {
 	return r
 }
 
-type str struct { // not worth importing reflect
+// string internals, from reflect
+type Str struct {
 	Data uintptr
 	Len  int
 }
 
-type slice struct {
-	str
+// slice internals, from reflect
+type Slice struct {
+	Str
 	Cap int
 }
 
-//	Converts byte slice to int slice.
+//	Converts byte Slice to int Slice.
 func BtI4(b []byte) (i []uint32) {
-	I := (*slice)(unsafe.Pointer(&i))
-	B := (*slice)(unsafe.Pointer(&b))
+	I := (*Slice)(unsafe.Pointer(&i))
+	B := (*Slice)(unsafe.Pointer(&b))
 	I.Data = B.Data
 	I.Len = B.Len >> 2
 	I.Cap = I.Len
 	return
 }
 
-//	Converts int slice to byte slice.
+//	Converts int Slice to byte Slice.
 func I4tB(i []uint32) (b []byte) {
-	I := (*slice)(unsafe.Pointer(&i))
-	B := (*slice)(unsafe.Pointer(&b))
+	I := (*Slice)(unsafe.Pointer(&i))
+	B := (*Slice)(unsafe.Pointer(&b))
 	B.Data = I.Data
 	B.Len = I.Len << 2
 	B.Cap = B.Len
 	return
 }
 
-//	Converts byte slice to int slice.
+//	Converts byte Slice to int Slice.
 func BtI8(b []byte) (i []uint64) {
-	I := (*slice)(unsafe.Pointer(&i))
-	B := (*slice)(unsafe.Pointer(&b))
+	I := (*Slice)(unsafe.Pointer(&i))
+	B := (*Slice)(unsafe.Pointer(&b))
 	I.Data = B.Data
 	I.Len = B.Len >> 3
 	I.Cap = I.Len
 	return
 }
 
-//	Converts int slice to byte slice.
+//	Converts int Slice to byte Slice.
 func I8tB(i []uint64) (b []byte) {
-	I := (*slice)(unsafe.Pointer(&i))
-	B := (*slice)(unsafe.Pointer(&b))
+	I := (*Slice)(unsafe.Pointer(&i))
+	B := (*Slice)(unsafe.Pointer(&b))
 	B.Data = I.Data
 	B.Len = I.Len << 3
 	B.Cap = B.Len
 	return
 }
 
-//	Converts string to int slice.
+//	Converts string to int Slice.
 func StI4(s string) (i []uint32) {
-	I := (*slice)(unsafe.Pointer(&i))
-	S := (*str)(unsafe.Pointer(&s))
+	I := (*Slice)(unsafe.Pointer(&i))
+	S := (*Str)(unsafe.Pointer(&s))
 	I.Data = S.Data
 	I.Len = S.Len >> 2
 	I.Cap = I.Len
 	return
 }
 
-//	Converts int slice to string.
+//	Converts int Slice to string.
 func I4tS(i []uint32) (s string) {
-	I := (*slice)(unsafe.Pointer(&i))
-	S := (*str)(unsafe.Pointer(&s))
+	I := (*Slice)(unsafe.Pointer(&i))
+	S := (*Str)(unsafe.Pointer(&s))
 	S.Data = I.Data
 	S.Len = I.Len << 2
 	return
 }
 
-//	Converts string to int slice.
+//	Converts string to int Slice.
 func StI8(s string) (i []uint64) {
-	I := (*slice)(unsafe.Pointer(&i))
-	S := (*str)(unsafe.Pointer(&s))
+	I := (*Slice)(unsafe.Pointer(&i))
+	S := (*Str)(unsafe.Pointer(&s))
 	I.Data = S.Data
 	I.Len = S.Len >> 3
 	I.Cap = I.Len
 	return
 }
 
-//	Converts int slice to string.
+//	Converts int Slice to string.
 func I8tS(i []uint64) (s string) {
-	I := (*slice)(unsafe.Pointer(&i))
-	S := (*str)(unsafe.Pointer(&s))
+	I := (*Slice)(unsafe.Pointer(&i))
+	S := (*Str)(unsafe.Pointer(&s))
 	S.Data = I.Data
 	S.Len = I.Len << 3
 	return
