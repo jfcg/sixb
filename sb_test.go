@@ -29,7 +29,7 @@ func Test0(t *testing.T) {
 		}
 	}
 
-	sorty.SortU8(hl)
+	sorty.SortU8(hl, 4)
 
 	k := 0 // count collisions
 	for i := N - 1; i > 0; i-- {
