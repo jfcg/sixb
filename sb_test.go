@@ -9,12 +9,13 @@ package sixb
 import (
 	"github.com/jfcg/sorty"
 	"testing"
+	"unsafe"
 )
 
 // Txt2int collision test
 func Test0(t *testing.T) {
-	const N = 3 << 27
-	hl := make([]uint64, N)  // hash list: 3 GiB ram
+	const N = 5 << 26
+	hl := make([]uint64, N)  // hash list: 2.5 GiB ram
 	bf := []byte{0, 0, 0, 0} // input buffer
 
 	// fill hl with hashes of short utf8 text
@@ -87,7 +88,8 @@ func Test2(t *testing.T) {
 	p := BtI4(buf)
 	q := I4tB(p)
 
-	if len(y) != 1 || cap(y) != 1 || y[0] != 3689065420975077233 ||
+	if unsafe.Sizeof(buf) != unsafe.Sizeof(Slice{}) ||
+		len(y) != 1 || cap(y) != 1 || y[0] != 3689065420975077233 ||
 		len(p) != 2 || cap(p) != 2 || p[0] != 1919252337 || p[1] != 858927476 ||
 		len(z) != 8 || cap(z) != 8 || &z[0] != &buf[0] ||
 		len(q) != 8 || cap(q) != 8 || &q[0] != &buf[0] {
@@ -102,7 +104,8 @@ func Test3(t *testing.T) {
 	r := StI4(str)
 	s := I4tS(r)
 
-	if len(a) != 1 || cap(a) != 1 || a[0] != 3689065420975077233 ||
+	if unsafe.Sizeof(str) != unsafe.Sizeof(String{}) ||
+		len(a) != 1 || cap(a) != 1 || a[0] != 3689065420975077233 ||
 		len(r) != 2 || cap(r) != 2 || r[0] != 1919252337 || r[1] != 858927476 ||
 		b != str[:8] || s != str[:8] {
 		t.Fatal("string conversion error")
