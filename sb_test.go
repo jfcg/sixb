@@ -69,29 +69,36 @@ func Test1(t *testing.T) {
 	}
 }
 
+var (
+	str = "qwert12345"
+	buf = []byte(str)
+)
+
 // slice conversions
 func Test2(t *testing.T) {
-	v := "qwert123"
-	w := v + "45"
-	x := []byte(w)
-
-	y := BtI8(x)
+	y := BtI8(buf)
 	z := I8tB(y)
-	p := BtI4(x)
+	p := BtI4(buf)
 	q := I4tB(p)
 
-	a := StI8(w)
+	if len(y) != 1 || cap(y) != 1 || y[0] != 3689065420975077233 ||
+		len(p) != 2 || cap(p) != 2 || p[0] != 1919252337 || p[1] != 858927476 ||
+		len(z) != 8 || cap(z) != 8 || &z[0] != &buf[0] ||
+		len(q) != 8 || cap(q) != 8 || &q[0] != &buf[0] {
+		t.Fatal("slice conversion error")
+	}
+}
+
+// string conversions
+func Test3(t *testing.T) {
+	a := StI8(str)
 	b := I8tS(a)
-	r := StI4(w)
+	r := StI4(str)
 	s := I4tS(r)
 
-	if len(y) != 1 || cap(y) != 1 || y[0] != 3689065420975077233 ||
-		len(a) != 1 || cap(a) != 1 || a[0] != 3689065420975077233 ||
-		len(p) != 2 || cap(p) != 2 || p[0] != 1919252337 || p[1] != 858927476 ||
+	if len(a) != 1 || cap(a) != 1 || a[0] != 3689065420975077233 ||
 		len(r) != 2 || cap(r) != 2 || r[0] != 1919252337 || r[1] != 858927476 ||
-		len(z) != 8 || cap(z) != 8 || &z[0] != &x[0] ||
-		len(q) != 8 || cap(q) != 8 || &q[0] != &x[0] ||
-		b != v || s != v {
-		t.Fatal("slice/string conversion error")
+		b != str[:8] || s != str[:8] {
+		t.Fatal("string conversion error")
 	}
 }
