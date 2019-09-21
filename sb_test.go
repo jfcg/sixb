@@ -44,6 +44,10 @@ func Test0(t *testing.T) {
 
 // An2sb & Sb2an bijection & domain
 func Test1(t *testing.T) {
+	if len(An2sb) != 256 || len(Sb2an) != 256 {
+		t.Fatal("invalid lengths")
+	}
+
 	for i := 255; i >= 0; i-- {
 		c := byte(i)
 		d := An2sb[c]
@@ -65,7 +69,7 @@ func Test1(t *testing.T) {
 	}
 }
 
-// Slice conversions
+// slice conversions
 func Test2(t *testing.T) {
 	v := "qwert123"
 	w := v + "45"
