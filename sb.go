@@ -152,3 +152,36 @@ func I8tS(i []uint64) (s string) {
 	S.Len = I.Len << 3
 	return
 }
+
+// string size
+const stsz = int(unsafe.Sizeof(""))
+
+// BtSs converts byte slice to String slice
+func BtSs(b []byte) (ss []String) {
+	B := (*Slice)(unsafe.Pointer(&b))
+	S := (*Slice)(unsafe.Pointer(&ss))
+	S.Data = B.Data
+	S.Len = B.Len / stsz
+	S.Cap = S.Len
+	return
+}
+
+// I4tSs converts integer slice to String slice
+func I4tSs(i []uint32) (ss []String) {
+	I := (*Slice)(unsafe.Pointer(&i))
+	S := (*Slice)(unsafe.Pointer(&ss))
+	S.Data = I.Data
+	S.Len = 4 * I.Len / stsz
+	S.Cap = S.Len
+	return
+}
+
+// I8tSs converts integer slice to String slice
+func I8tSs(i []uint64) (ss []String) {
+	I := (*Slice)(unsafe.Pointer(&i))
+	S := (*Slice)(unsafe.Pointer(&ss))
+	S.Data = I.Data
+	S.Len = 8 * I.Len / stsz
+	S.Cap = S.Len
+	return
+}

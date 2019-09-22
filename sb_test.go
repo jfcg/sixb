@@ -15,12 +15,12 @@ import (
 // Txt2int collision test
 func Test0(t *testing.T) {
 	const N = 5 << 26
-	hl := make([]uint64, N)  // hash list: 2.5 GiB ram
-	bf := []byte{0, 0, 0, 0} // input buffer
+	hl := make([]uint64, N)     // hash list: 2.5 GiB ram
+	bf := [...]byte{0, 0, 0, 0} // input buffer
 
 	// fill hl with hashes of short utf8 text
-	for i, l := N-1, 0; i >= 0; i-- {
-		hl[i] = Txt2int(string(bf[:l]))
+	// hl[N-1] = Txt2int("") = 0
+	for i, l := N-2, 0; i >= 0; i-- {
 
 		// next utf8-ish input
 		for k := 0; ; k++ {
@@ -32,8 +32,9 @@ func Test0(t *testing.T) {
 			if bf[k] != 0 {
 				break
 			}
-			bf[k]++ // continue with carry
+			bf[k]++ // skip zero digit, continue with carry
 		}
+		hl[i] = Txt2int(string(bf[:l]))
 	}
 
 	sorty.SortU8(hl)
@@ -77,8 +78,15 @@ func Test1(t *testing.T) {
 }
 
 var (
-	str = "qwert12345"
+	big = "qwert123qwert12345"
+	str = big[:9]
 	buf = []byte(str)
+)
+
+const (
+	cn0 = 1919252337
+	cn1 = 858927476
+	cn2 = cn0 + cn1<<32
 )
 
 // slice conversions
@@ -89,8 +97,8 @@ func Test2(t *testing.T) {
 	q := I4tB(p)
 
 	if unsafe.Sizeof(buf) != unsafe.Sizeof(Slice{}) ||
-		len(y) != 1 || cap(y) != 1 || y[0] != 3689065420975077233 ||
-		len(p) != 2 || cap(p) != 2 || p[0] != 1919252337 || p[1] != 858927476 ||
+		len(y) != 1 || cap(y) != 1 || y[0] != cn2 ||
+		len(p) != 2 || cap(p) != 2 || p[0] != cn0 || p[1] != cn1 ||
 		len(z) != 8 || cap(z) != 8 || &z[0] != &buf[0] ||
 		len(q) != 8 || cap(q) != 8 || &q[0] != &buf[0] {
 		t.Fatal("slice conversion error")
@@ -104,10 +112,26 @@ func Test3(t *testing.T) {
 	r := StI4(str)
 	s := I4tS(r)
 
-	if unsafe.Sizeof(str) != unsafe.Sizeof(String{}) ||
-		len(a) != 1 || cap(a) != 1 || a[0] != 3689065420975077233 ||
-		len(r) != 2 || cap(r) != 2 || r[0] != 1919252337 || r[1] != 858927476 ||
+	if stsz != 8 && stsz != 16 || stsz != int(unsafe.Sizeof(String{})) ||
+		len(a) != 1 || cap(a) != 1 || a[0] != cn2 ||
+		len(r) != 2 || cap(r) != 2 || r[0] != cn0 || r[1] != cn1 ||
 		b != str[:8] || s != str[:8] {
 		t.Fatal("string conversion error")
+	}
+}
+
+// []String conversions
+func Test4(t *testing.T) {
+	buf := []byte(big)
+	a := BtSs(buf)
+	b := I8tSs(BtI8(buf))
+	c := I4tSs(BtI4(buf))
+
+	s := 16 / stsz
+	r := uint(2-s) << 5
+	if len(a) != s || cap(a) != s || uint32(a[0].Data) != cn0 || uint32(a[0].Len>>r) != cn1 ||
+		len(b) != s || cap(b) != s || uint32(b[0].Data) != cn0 || uint32(b[0].Len>>r) != cn1 ||
+		len(c) != s || cap(c) != s || uint32(c[0].Data) != cn0 || uint32(c[0].Len>>r) != cn1 {
+		t.Fatal("String slice conversion error")
 	}
 }
