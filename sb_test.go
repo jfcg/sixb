@@ -120,6 +120,16 @@ func Test3(t *testing.T) {
 	}
 }
 
+// bad slice?
+func bad(a []String) bool {
+	const (
+		s = 16 / stsz
+		r = uint(2-s) << 5
+	)
+	return len(a) != s || cap(a) != s ||
+		uint32(a[0].Data) != cn0 || uint32(a[0].Len>>r) != cn1
+}
+
 // []String conversions
 func Test4(t *testing.T) {
 	buf := []byte(big)
@@ -127,11 +137,7 @@ func Test4(t *testing.T) {
 	b := I8tSs(BtI8(buf))
 	c := I4tSs(BtI4(buf))
 
-	s := 16 / stsz
-	r := uint(2-s) << 5
-	if len(a) != s || cap(a) != s || uint32(a[0].Data) != cn0 || uint32(a[0].Len>>r) != cn1 ||
-		len(b) != s || cap(b) != s || uint32(b[0].Data) != cn0 || uint32(b[0].Len>>r) != cn1 ||
-		len(c) != s || cap(c) != s || uint32(c[0].Data) != cn0 || uint32(c[0].Len>>r) != cn1 {
+	if bad(a) || bad(b) || bad(c) {
 		t.Fatal("String slice conversion error")
 	}
 }
