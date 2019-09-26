@@ -1,5 +1,5 @@
 ## sixb [![Go Report Card](https://goreportcard.com/badge/github.com/jfcg/sixb)](https://goreportcard.com/report/github.com/jfcg/sixb) [![GoDoc](https://godoc.org/github.com/jfcg/sixb?status.svg)](https://godoc.org/github.com/jfcg/sixb)
-Some string utility functions including slice conversions and a fast hash.
+Some string utility functions including from/to string/slice conversions and a fast hash.
 
 ### Txt2int collisions
 We have searched for collisions on Txt2int 64-bit hash function for more than 5x2^37 **short utf8 text** inputs but could not identify any. Collisions were found for longer inputs and it is not a cryptographic hash.
