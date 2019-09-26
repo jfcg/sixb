@@ -115,6 +115,16 @@ func I8tB(i []uint64) (b []byte) {
 	return
 }
 
+// StB converts string to byte slice
+func StB(s string) (b []byte) {
+	B := (*Slice)(unsafe.Pointer(&b))
+	S := (*String)(unsafe.Pointer(&s))
+	B.Data = S.Data
+	B.Len = S.Len
+	B.Cap = B.Len
+	return
+}
+
 // StI4 converts string to integer slice
 func StI4(s string) (i []uint32) {
 	I := (*Slice)(unsafe.Pointer(&i))

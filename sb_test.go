@@ -115,7 +115,19 @@ func Test3(t *testing.T) {
 	if stsz != 8 && stsz != 16 || stsz != int(unsafe.Sizeof(String{})) ||
 		len(a) != 1 || cap(a) != 1 || a[0] != cn2 ||
 		len(r) != 2 || cap(r) != 2 || r[0] != cn0 || r[1] != cn1 ||
-		b != str[:8] || s != str[:8] {
+		unsafe.Pointer(&a[0]) == unsafe.Pointer(&buf[0]) ||
+		unsafe.Pointer(&a[0]) != unsafe.Pointer(&r[0]) || b != str[:8] || s != str[:8] {
+		t.Fatal("string conversion error")
+	}
+}
+
+// string conversions
+func Test3b(t *testing.T) {
+	a := StB(big)
+	b := StB(str)
+
+	if len(a) != len(big) || len(b) != len(str) ||
+		&a[0] != &b[0] || &a[0] == &buf[0] {
 		t.Fatal("string conversion error")
 	}
 }
