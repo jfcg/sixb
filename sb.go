@@ -65,7 +65,7 @@ func Copy(x []byte) []byte {
 
 // String internals from reflect
 type String struct {
-	Data uintptr
+	Data unsafe.Pointer
 	Len  int
 }
 

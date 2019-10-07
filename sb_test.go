@@ -89,6 +89,11 @@ const (
 	cn2 = cn0 + cn1<<32
 )
 
+// bad byte slice?
+func badb(q []byte) bool {
+	return len(q) != 8 || cap(q) != 8 || &q[0] != &buf[0]
+}
+
 // slice conversions
 func Test2(t *testing.T) {
 	y := BtI8(buf)
@@ -99,9 +104,27 @@ func Test2(t *testing.T) {
 	if unsafe.Sizeof(buf) != unsafe.Sizeof(Slice{}) ||
 		len(y) != 1 || cap(y) != 1 || y[0] != cn2 ||
 		len(p) != 2 || cap(p) != 2 || p[0] != cn0 || p[1] != cn1 ||
-		len(z) != 8 || cap(z) != 8 || &z[0] != &buf[0] ||
-		len(q) != 8 || cap(q) != 8 || &q[0] != &buf[0] {
+		unsafe.Pointer(&y[0]) != unsafe.Pointer(&p[0]) ||
+		unsafe.Pointer(&y[0]) != unsafe.Pointer(&buf[0]) ||
+		badb(z) || badb(q) {
 		t.Fatal("slice conversion error")
+	}
+}
+
+// nil string/slice conversions
+func Test2b(t *testing.T) {
+	var (
+		s string
+		a []byte
+		b []uint32
+		c []uint64
+	)
+
+	if StB(s) != nil || StI4(s) != nil || StI8(s) != nil ||
+		I4tS(b) != "" || I8tS(c) != "" ||
+		BtI4(a) != nil || BtI8(a) != nil || I4tB(b) != nil || I8tB(c) != nil ||
+		BtSs(a) != nil || I4tSs(b) != nil || I8tSs(c) != nil {
+		t.Fatal("nil string/slice conversion error")
 	}
 }
 
@@ -127,6 +150,7 @@ func Test3b(t *testing.T) {
 	b := StB(str)
 
 	if len(a) != len(big) || len(b) != len(str) ||
+		len(a) != cap(a) || len(b) != cap(b) ||
 		&a[0] != &b[0] || &a[0] == &buf[0] {
 		t.Fatal("string conversion error")
 	}
@@ -139,7 +163,7 @@ func bad(a []String) bool {
 		r = uint(2-s) << 5
 	)
 	return len(a) != s || cap(a) != s ||
-		uint32(a[0].Data) != cn0 || uint32(a[0].Len>>r) != cn1
+		uint32(uintptr(a[0].Data)) != cn0 || uint32(a[0].Len>>r) != cn1
 }
 
 // []String conversions
