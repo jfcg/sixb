@@ -67,6 +67,14 @@ func Test1(t *testing.T) {
 		}
 	}
 
+	n := 0 // cycle length
+	for d := An2sb[0]; d != 0; n++ {
+		d = An2sb[d]
+	}
+	if n != 255 {
+		t.Fatal("multiple cycles")
+	}
+
 	l := "0:@Zaz"
 	for i := 4; i >= 0; i -= 2 {
 		for c := l[i]; c <= l[i+1]; c++ {
