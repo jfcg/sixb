@@ -195,3 +195,29 @@ func I8tSs(i []uint64) (ss []String) {
 	S.Cap = S.Len
 	return
 }
+
+// CmpS returns -1 for a < b, 0 for a = b, and 1 for a > b lexicographically
+func CmpS(a, b string) int32 {
+	n, k, r := len(a), len(b), int32(0)
+	if n > k {
+		n = k
+		r++
+	} else if n < k {
+		r--
+	}
+
+	for i := 0; i < n; i++ {
+		if a[i] < b[i] {
+			return -1
+		}
+		if a[i] > b[i] {
+			return 1
+		}
+	}
+	return r
+}
+
+// CmpB returns -1 for a < b, 0 for a = b, and 1 for a > b lexicographically
+func CmpB(a, b []byte) int32 {
+	return CmpS(string(a), string(b))
+}
