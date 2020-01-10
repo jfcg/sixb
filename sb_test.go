@@ -185,3 +185,24 @@ func Test4(t *testing.T) {
 		t.Fatal("String slice conversion error")
 	}
 }
+
+var cmp = [...]string{"", "A", "AA", "AB", "B", "BA", "BB"}
+
+func TestCmp(t *testing.T) {
+	for i := len(cmp) - 1; i >= 0; i-- {
+		s := cmp[i]
+		b := []byte(s)
+		if CmpS(s, s) != 0 || CmpB(b, b) != 0 {
+			t.Fatal(s, "must be equal to itself")
+		}
+
+		for k := i - 1; k >= 0; k-- {
+			r := cmp[k]
+			a := []byte(r)
+			if CmpS(r, s) != -1 || CmpS(s, r) != 1 ||
+				CmpB(a, b) != -1 || CmpB(b, a) != 1 {
+				t.Fatal(r, "must be less than", s)
+			}
+		}
+	}
+}
