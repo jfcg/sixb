@@ -95,6 +95,26 @@ func I4tB(i []uint32) (b []byte) {
 	return
 }
 
+// I4tI8 converts uint32 slice to uint64 slice
+func I4tI8(i []uint32) (k []uint64) {
+	I := (*Slice)(unsafe.Pointer(&i))
+	K := (*Slice)(unsafe.Pointer(&k))
+	K.Data = I.Data
+	K.Len = I.Len >> 1
+	K.Cap = K.Len
+	return
+}
+
+// I8tI4 converts uint64 slice to uint32 slice
+func I8tI4(i []uint64) (k []uint32) {
+	I := (*Slice)(unsafe.Pointer(&i))
+	K := (*Slice)(unsafe.Pointer(&k))
+	K.Data = I.Data
+	K.Len = I.Len << 1
+	K.Cap = K.Len
+	return
+}
+
 // BtI8 converts byte slice to integer slice
 func BtI8(b []byte) (i []uint64) {
 	I := (*Slice)(unsafe.Pointer(&i))

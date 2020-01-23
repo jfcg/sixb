@@ -119,6 +119,22 @@ func Test2(t *testing.T) {
 	}
 }
 
+// slice conversions
+func Test2a(t *testing.T) {
+	p := BtI4(buf)
+	y := I4tI8(p)
+	z := I8tI4(y)
+	a := unsafe.Pointer(&y[0])
+
+	if len(y) != 1 || cap(y) != 1 || y[0] != cn2 ||
+		len(p) != 2 || cap(p) != 2 || p[0] != cn0 || p[1] != cn1 ||
+		len(z) != 2 || cap(z) != 2 || z[0] != cn0 || z[1] != cn1 ||
+		a != unsafe.Pointer(&p[0]) || a != unsafe.Pointer(&z[0]) ||
+		a != unsafe.Pointer(&buf[0]) {
+		t.Fatal("slice conversion error")
+	}
+}
+
 // nil string/slice conversions
 func Test2b(t *testing.T) {
 	var (
