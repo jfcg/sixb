@@ -135,6 +135,15 @@ func I8tB(i []uint64) (b []byte) {
 	return
 }
 
+// BtS converts byte slice to string
+func BtS(b []byte) (s string) {
+	B := (*Slice)(unsafe.Pointer(&b))
+	S := (*String)(unsafe.Pointer(&s))
+	S.Data = B.Data
+	S.Len = B.Len
+	return
+}
+
 // StB converts string to byte slice
 func StB(s string) (b []byte) {
 	B := (*Slice)(unsafe.Pointer(&b))
@@ -239,5 +248,5 @@ func CmpS(a, b string) int32 {
 
 // CmpB returns -1 for a < b, 0 for a = b, and 1 for a > b lexicographically
 func CmpB(a, b []byte) int32 {
-	return CmpS(string(a), string(b))
+	return CmpS(BtS(a), BtS(b))
 }

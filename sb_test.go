@@ -172,9 +172,11 @@ func Test3(t *testing.T) {
 func Test3b(t *testing.T) {
 	a := StB(big)
 	b := StB(str)
+	c := BtS(buf)
 
 	if len(a) != len(big) || len(b) != len(str) ||
 		len(a) != cap(a) || len(b) != cap(b) ||
+		len(c) != len(buf) || c != str ||
 		&a[0] != &b[0] || &a[0] == &buf[0] {
 		t.Fatal("string conversion error")
 	}
