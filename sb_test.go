@@ -7,48 +7,9 @@
 package sixb
 
 import (
-	"github.com/jfcg/sorty"
 	"testing"
 	"unsafe"
 )
-
-// Txt2int collision test
-func Test0(t *testing.T) {
-	const N = 5 << 26
-	hl := make([]uint64, N)     // hash list: 2.5 GiB ram
-	bf := [...]byte{0, 0, 0, 0} // input buffer
-
-	// fill hl with hashes of short utf8 text
-	// hl[N-1] = Txt2int("") = 0
-	for i, l := N-2, 0; i >= 0; i-- {
-
-		// next utf8-ish input
-		for k := 0; ; k++ {
-			if bf[k] == 0 {
-				l++ // increase input length
-			}
-			bf[k]++
-
-			if bf[k] != 0 {
-				break
-			}
-			bf[k]++ // skip zero digit, continue with carry
-		}
-		hl[i] = Txt2int(string(bf[:l]))
-	}
-
-	sorty.SortU8(hl)
-
-	k := 0 // count collisions
-	for i := N - 1; i > 0; i-- {
-		if hl[i] == hl[i-1] {
-			k++
-		}
-	}
-	if k > 0 {
-		t.Fatal("Txt2int has at least", k, "collisions for short utf8 inputs")
-	}
-}
 
 // An2sb & Sb2an bijection & domain
 func Test1(t *testing.T) {

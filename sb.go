@@ -9,19 +9,6 @@ package sixb
 
 import "unsafe"
 
-// Prime is the closest one to 2^64 / golden_ratio
-const Prime = 11400714819323198549
-
-// Txt2int is a quick & collision-resilient hash function for short utf8 text inputs
-func Txt2int(s string) uint64 {
-	x := uint64(len(s)) * Prime
-	for i := len(s) - 1; i >= 0; i-- {
-		x ^= uint64(s[i])
-		x *= Prime
-	}
-	return x
-}
-
 // An2sb is a bijection (without fixed points, single cycle and inverse of Sb2an) that
 // maps 0-9: @A-Z a-z onto 6-bits
 var An2sb = [...]byte{208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220,
