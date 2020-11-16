@@ -1,4 +1,4 @@
-## sixb [![Go Report Card](https://goreportcard.com/badge/github.com/jfcg/sixb)](https://goreportcard.com/report/github.com/jfcg/sixb) [![GoDoc](https://godoc.org/github.com/jfcg/sixb?status.svg)](https://godoc.org/github.com/jfcg/sixb)
+## sixb [![Go Report Card](https://goreportcard.com/badge/github.com/jfcg/sixb)](https://goreportcard.com/report/github.com/jfcg/sixb) [![go.dev ref](/.github/godev.svg)](https://pkg.go.dev/github.com/jfcg/sixb)
 Some string utility functions including from/to string/slice conversions.
 Also, sixb uses [semantic](https://semver.org) versioning.
 
