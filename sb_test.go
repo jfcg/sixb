@@ -11,26 +11,26 @@ import (
 	"unsafe"
 )
 
-// An2sb & Sb2an bijection & domain
+// AnumToSixb & SixbToAnum bijection & domain
 func Test1(t *testing.T) {
-	if len(An2sb) != 256 || len(Sb2an) != 256 {
+	if len(AnumToSixb) != 256 || len(SixbToAnum) != 256 {
 		t.Fatal("invalid lengths")
 	}
 
 	for i := 255; i >= 0; i-- {
 		c := byte(i)
-		d := An2sb[c]
+		d := AnumToSixb[c]
 		if c == d {
 			t.Fatal("fixed point", i)
 		}
-		if c != Sb2an[d] {
+		if c != SixbToAnum[d] {
 			t.Fatal("inverse does not work", i)
 		}
 	}
 
 	n := 0 // cycle length
-	for d := An2sb[0]; d != 0; n++ {
-		d = An2sb[d]
+	for d := AnumToSixb[0]; d != 0; n++ {
+		d = AnumToSixb[d]
 	}
 	if n != 255 {
 		t.Fatal("multiple cycles")
@@ -39,7 +39,7 @@ func Test1(t *testing.T) {
 	l := "0:@Zaz"
 	for i := 4; i >= 0; i -= 2 {
 		for c := l[i]; c <= l[i+1]; c++ {
-			if An2sb[c] > 63 {
+			if AnumToSixb[c] > 63 {
 				t.Fatal("domain error", c)
 			}
 		}
@@ -58,6 +58,16 @@ const (
 	cn2 = cn0 + cn1<<32
 )
 
+func TestCopy(t *testing.T) {
+	if !InsideTest() {
+		t.Fatal("InsideTest does not work")
+	}
+	b := Copy(buf)
+	if &b[0] == &buf[0] || string(b) != string(buf) {
+		t.Fatal("Copy does not work")
+	}
+}
+
 // bad byte slice?
 func badb(q []byte) bool {
 	return len(q) != 8 || cap(q) != 8 || &q[0] != &buf[0]
@@ -65,10 +75,10 @@ func badb(q []byte) bool {
 
 // slice conversions
 func Test2(t *testing.T) {
-	y := BtI8(buf)
-	z := I8tB(y)
-	p := BtI4(buf)
-	q := I4tB(p)
+	y := BtoU8(buf)
+	z := U8toB(y)
+	p := BtoU4(buf)
+	q := U4toB(p)
 
 	if unsafe.Sizeof(buf) != unsafe.Sizeof(Slice{}) ||
 		len(y) != 1 || cap(y) != 1 || y[0] != cn2 ||
@@ -82,9 +92,9 @@ func Test2(t *testing.T) {
 
 // slice conversions
 func Test2a(t *testing.T) {
-	p := BtI4(buf)
-	y := I4tI8(p)
-	z := I8tI4(y)
+	p := BtoU4(buf)
+	y := U4toU8(p)
+	z := U8toU4(y)
 	a := unsafe.Pointer(&y[0])
 
 	if len(y) != 1 || cap(y) != 1 || y[0] != cn2 ||
@@ -105,22 +115,23 @@ func Test2b(t *testing.T) {
 		c []uint64
 	)
 
-	if StB(s) != nil || StI4(s) != nil || StI8(s) != nil ||
-		I4tS(b) != "" || I8tS(c) != "" ||
-		BtI4(a) != nil || BtI8(a) != nil || I4tB(b) != nil || I8tB(c) != nil ||
-		BtSs(a) != nil || I4tSs(b) != nil || I8tSs(c) != nil {
+	if StoB(s) != nil || StoU4(s) != nil || StoU8(s) != nil ||
+		U4toS(b) != "" || U8toS(c) != "" ||
+		BtoU4(a) != nil || BtoU8(a) != nil || U4toB(b) != nil || U8toB(c) != nil ||
+		BtoSs(a) != nil || U4toSs(b) != nil || U8toSs(c) != nil {
 		t.Fatal("nil string/slice conversion error")
 	}
 }
 
 // string conversions
 func Test3(t *testing.T) {
-	a := StI8(str)
-	b := I8tS(a)
-	r := StI4(str)
-	s := I4tS(r)
+	a := StoU8(str)
+	b := U8toS(a)
+	r := StoU4(str)
+	s := U4toS(r)
 
-	if stsz != 8 && stsz != 16 || stsz != int(unsafe.Sizeof(String{})) ||
+	if SliceSize != int(unsafe.Sizeof(Slice{})) ||
+		StrSize != int(unsafe.Sizeof(String{})) ||
 		len(a) != 1 || cap(a) != 1 || a[0] != cn2 ||
 		len(r) != 2 || cap(r) != 2 || r[0] != cn0 || r[1] != cn1 ||
 		unsafe.Pointer(&a[0]) == unsafe.Pointer(&buf[0]) ||
@@ -131,9 +142,9 @@ func Test3(t *testing.T) {
 
 // string conversions
 func Test3b(t *testing.T) {
-	a := StB(big)
-	b := StB(str)
-	c := BtS(buf)
+	a := StoB(big)
+	b := StoB(str)
+	c := BtoS(buf)
 
 	if len(a) != len(big) || len(b) != len(str) ||
 		len(a) != cap(a) || len(b) != cap(b) ||
@@ -146,7 +157,7 @@ func Test3b(t *testing.T) {
 // bad slice?
 func bad(a []String) bool {
 	const (
-		s = 16 / stsz
+		s = 16 / StrSize
 		r = uint(2-s) << 5
 	)
 	return len(a) != s || cap(a) != s ||
@@ -156,9 +167,9 @@ func bad(a []String) bool {
 // []String conversions
 func Test4(t *testing.T) {
 	buf := []byte(big)
-	a := BtSs(buf)
-	b := I8tSs(BtI8(buf))
-	c := I4tSs(BtI4(buf))
+	a := BtoSs(buf)
+	b := U8toSs(BtoU8(buf))
+	c := U4toSs(BtoU4(buf))
 
 	if bad(a) || bad(b) || bad(c) {
 		t.Fatal("String slice conversion error")
