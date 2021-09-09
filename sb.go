@@ -196,8 +196,8 @@ const (
 	SliceSize = int(unsafe.Sizeof([]byte{}))
 )
 
-// BtoSs converts byte slice to String slice
-func BtoSs(b []byte) (ss []String) {
+// BtoStrs converts byte slice to String slice
+func BtoStrs(b []byte) (ss []String) {
 	B := (*Slice)(unsafe.Pointer(&b))
 	S := (*Slice)(unsafe.Pointer(&ss))
 	S.Data = B.Data
@@ -206,8 +206,8 @@ func BtoSs(b []byte) (ss []String) {
 	return
 }
 
-// U4toSs converts integer slice to String slice
-func U4toSs(i []uint32) (ss []String) {
+// U4toStrs converts integer slice to String slice
+func U4toStrs(i []uint32) (ss []String) {
 	I := (*Slice)(unsafe.Pointer(&i))
 	S := (*Slice)(unsafe.Pointer(&ss))
 	S.Data = I.Data
@@ -216,12 +216,42 @@ func U4toSs(i []uint32) (ss []String) {
 	return
 }
 
-// U8toSs converts integer slice to String slice
-func U8toSs(i []uint64) (ss []String) {
+// U8toStrs converts integer slice to String slice
+func U8toStrs(i []uint64) (ss []String) {
 	I := (*Slice)(unsafe.Pointer(&i))
 	S := (*Slice)(unsafe.Pointer(&ss))
 	S.Data = I.Data
 	S.Len = 8 * I.Len / StrSize
+	S.Cap = S.Len
+	return
+}
+
+// BtoSlcs converts byte slice to Slice slice
+func BtoSlcs(b []byte) (ss []Slice) {
+	B := (*Slice)(unsafe.Pointer(&b))
+	S := (*Slice)(unsafe.Pointer(&ss))
+	S.Data = B.Data
+	S.Len = B.Len / SliceSize
+	S.Cap = S.Len
+	return
+}
+
+// U4toSlcs converts integer slice to Slice slice
+func U4toSlcs(i []uint32) (ss []Slice) {
+	I := (*Slice)(unsafe.Pointer(&i))
+	S := (*Slice)(unsafe.Pointer(&ss))
+	S.Data = I.Data
+	S.Len = 4 * I.Len / SliceSize
+	S.Cap = S.Len
+	return
+}
+
+// U8toSlcs converts integer slice to Slice slice
+func U8toSlcs(i []uint64) (ss []Slice) {
+	I := (*Slice)(unsafe.Pointer(&i))
+	S := (*Slice)(unsafe.Pointer(&ss))
+	S.Data = I.Data
+	S.Len = 8 * I.Len / SliceSize
 	S.Cap = S.Len
 	return
 }

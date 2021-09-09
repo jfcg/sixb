@@ -47,14 +47,14 @@ func Test1(t *testing.T) {
 }
 
 var (
-	big = "qwert123qwert12345"
+	big = "qwert123qwert123qwert123"
 	str = big[:9]
 	buf = []byte(str)
 )
 
 const (
-	cn0 = 1919252337
-	cn1 = 858927476
+	cn0 = 1919252337 // "qwer"
+	cn1 = 858927476  // "t123"
 	cn2 = cn0 + cn1<<32
 )
 
@@ -118,7 +118,8 @@ func Test2b(t *testing.T) {
 	if StoB(s) != nil || StoU4(s) != nil || StoU8(s) != nil ||
 		U4toS(b) != "" || U8toS(c) != "" ||
 		BtoU4(a) != nil || BtoU8(a) != nil || U4toB(b) != nil || U8toB(c) != nil ||
-		BtoSs(a) != nil || U4toSs(b) != nil || U8toSs(c) != nil {
+		BtoStrs(a) != nil || U4toStrs(b) != nil || U8toStrs(c) != nil ||
+		BtoSlcs(a) != nil || U4toSlcs(b) != nil || U8toSlcs(c) != nil {
 		t.Fatal("nil string/slice conversion error")
 	}
 }
@@ -154,25 +155,56 @@ func Test3b(t *testing.T) {
 	}
 }
 
-// bad slice?
-func bad(a []String) bool {
-	const (
-		s = 16 / StrSize
-		r = uint(2-s) << 5
-	)
-	return len(a) != s || cap(a) != s ||
-		uint32(uintptr(a[0].Data)) != cn0 || uint32(a[0].Len>>r) != cn1
+// != "qwert123"
+func badx(x int) bool {
+	return uint32(x) != cn0 || uint32(x>>32) != cn1
+}
+
+// bad String slice?
+func badStr(a []String) bool {
+	if len(a) != cap(a) {
+		return true
+	}
+	d := uintptr(a[0].Data)
+	if StrSize == 8 {
+		return len(a) != 3 || d != cn0 || a[0].Len != cn1
+	}
+	return len(a) != 1 || badx(int(d)) || badx(a[0].Len)
 }
 
 // []String conversions
 func Test4(t *testing.T) {
 	buf := []byte(big)
-	a := BtoSs(buf)
-	b := U8toSs(BtoU8(buf))
-	c := U4toSs(BtoU4(buf))
+	a := BtoStrs(buf)
+	b := U8toStrs(BtoU8(buf))
+	c := U4toStrs(BtoU4(buf))
 
-	if bad(a) || bad(b) || bad(c) {
+	if badStr(a) || badStr(b) || badStr(c) {
 		t.Fatal("String slice conversion error")
+	}
+}
+
+// bad Slice slice?
+func badSlc(a []Slice) bool {
+	if len(a) != cap(a) {
+		return true
+	}
+	d := uintptr(a[0].Data)
+	if SliceSize == 12 {
+		return len(a) != 2 || d != cn0 || a[0].Len != cn1 || a[0].Cap != cn0
+	}
+	return len(a) != 1 || badx(int(d)) || badx(a[0].Len) || badx(a[0].Cap)
+}
+
+// []String conversions
+func Test4b(t *testing.T) {
+	buf := []byte(big)
+	a := BtoSlcs(buf)
+	b := U8toSlcs(BtoU8(buf))
+	c := U4toSlcs(BtoU4(buf))
+
+	if badSlc(a) || badSlc(b) || badSlc(c) {
+		t.Fatal("Slice slice conversion error")
 	}
 }
 
