@@ -68,8 +68,9 @@ type String struct {
 
 // Slice internals from reflect
 type Slice struct {
-	String
-	Cap int
+	Data unsafe.Pointer
+	Len  int
+	Cap  int
 }
 
 // BtoU4 converts byte slice to integer slice
