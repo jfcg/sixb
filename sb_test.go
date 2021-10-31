@@ -228,3 +228,43 @@ func TestCmp(t *testing.T) {
 		}
 	}
 }
+
+var mnt = [...]string{
+	"", "B", "!", // in1 < in2, out
+	"abc", "cde", "bcd",
+	"abc", "abd", "abc",
+	"SeRhat", "Tansu ", "T#`n+J",
+	"SeRgat", "Tantu ", "T#`n+J",
+	"Sergat", "TaNtu ", "T#`n+J",
+	"Serhat", "TaNsu ", "T#`n+J",
+	"NİreÇ", "eŞVkü", "ZE'dhá",
+	"Golang", "Python", "L4pe/*",
+	"JAVA", "RUST", "NKU\n",
+}
+
+func TestMean(t *testing.T) {
+
+	for i := len(mnt) - 1; i > 0; i -= 3 {
+		// MeanStr(in1,in2) = out ?
+		m := MeanStr(mnt[i-2], mnt[i-1])
+		if m != mnt[i] {
+			t.Fatal("MeanStr: expected:", mnt[i], "got:", m)
+		}
+		// MeanStr(in2,in1) = out ?
+		m2 := MeanStr(mnt[i-1], mnt[i-2])
+		if m != m2 {
+			t.Fatal("MeanStr: different means:", m, m2)
+		}
+		// in1 <= MeanStr(in1,in2) < in2 ?
+		if !(mnt[i-2] <= m && m < mnt[i-1]) {
+			t.Fatal("MeanStr: bad order:", mnt[i-2], m, mnt[i-1])
+		}
+	}
+	for i := len(mnt) - 1; i >= 0; i-- {
+		// MeanStr(in,in) = in ?
+		m := MeanStr(mnt[i], mnt[i])
+		if m != mnt[i] {
+			t.Fatal("MeanStr: same expected:", mnt[i], "got:", m)
+		}
+	}
+}

@@ -193,6 +193,7 @@ func U8toS(i []uint64) (s string) {
 const (
 	// StrSize is size of a string variable
 	StrSize = int(unsafe.Sizeof(""))
+
 	// SliceSize is size of a slice variable
 	SliceSize = int(unsafe.Sizeof([]byte{}))
 )
@@ -255,31 +256,4 @@ func U8toSlcs(i []uint64) (ss []Slice) {
 	S.Len = 8 * I.Len / SliceSize
 	S.Cap = S.Len
 	return
-}
-
-// CmpS returns -1 for a < b, 0 for a = b, and 1 for a > b lexicographically
-func CmpS(a, b string) (r int) {
-	n, k := len(a), len(b)
-	if n > k {
-		n = k
-		r++
-	} else if n < k {
-		r--
-	}
-
-	for i := 0; i < n; i++ {
-		x, y := a[i], b[i]
-		if x < y {
-			return -1
-		}
-		if x > y {
-			return 1
-		}
-	}
-	return
-}
-
-// CmpB returns -1 for a < b, 0 for a = b, and 1 for a > b lexicographically
-func CmpB(a, b []byte) int {
-	return CmpS(BtoS(a), BtoS(b))
 }
