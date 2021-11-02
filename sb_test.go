@@ -240,6 +240,7 @@ var mnt = [...]string{
 	"NİreÇ", "eŞVkü", "ZE'dhá",
 	"Golang", "Python", "L4pe/*",
 	"JAVA", "RUST", "NKU\n",
+	"致命的", "警告abc", "蚭呤$~s",
 }
 
 func TestMean(t *testing.T) {

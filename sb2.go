@@ -53,26 +53,28 @@ func MeanStr(s1, s2 string) string {
 	}
 	avg := make([]byte, i+1) // extra byte
 
-	var sum, prsum, mask, shift uint32
-	for i > 0 {
-		i--
-		c := uint32(s2[i])
+	var sum, mask, prsum, prmask, shift uint32
+	goto start
+loop:
+	prmask = mask
+	prsum = sum & mask
+	shift = 7 + mask>>7
+	sum >>= shift // carry
+start:
+	i--
+	c := uint32(s2[i])
+	sum += c
+	mask = c | 127
+	if i < len(s1) {
+		c = uint32(s1[i])
 		sum += c
-		newMask := c | 127
-		if i < len(s1) {
-			c = uint32(s1[i])
-			sum += c
-			newMask |= c // if ascii inputs, consider 7 bits
-		}
-
-		avg[i+1] = byte((sum<<(shift-1) ^ prsum>>1) & mask)
-
-		mask = newMask
-		prsum = sum & mask
-		shift = 7 + mask>>7
-		sum >>= shift // carry
+		mask |= c // if ascii inputs, consider 7 bits
 	}
-	avg[0] = byte(sum<<(shift-1) ^ prsum>>1)
+	avg[i+1] = byte((sum<<(shift-1) ^ prsum>>1) & prmask)
+	if i > 0 {
+		goto loop
+	}
+	avg[0] = byte(sum >> 1)
 
 	return string(avg[:len(avg)-1])
 }
