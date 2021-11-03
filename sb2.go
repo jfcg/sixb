@@ -39,9 +39,9 @@ func CmpB(a, b []byte) int {
 	return CmpS(BtoS(a), BtoS(b))
 }
 
-// MeanStr returns lexicographic average of s1 & s2, up to 31 bytes. It treats ascii
+// MeanS returns lexicographic average of s1 & s2, up to 31 bytes. It treats ascii
 // specially. Results may contain unprintable characters or may not be valid utf8.
-func MeanStr(s1, s2 string) string {
+func MeanS(s1, s2 string) string {
 	if len(s2) < len(s1) {
 		s1, s2 = s2, s1
 	} else if len(s2) <= 0 {
@@ -77,4 +77,14 @@ start:
 	avg[0] = byte(sum >> 1)
 
 	return string(avg[:len(avg)-1])
+}
+
+// MeanU4 returns average of x, y. Mathematically equivalent to floor((x+y)/2).
+func MeanU4(x, y uint32) uint32 {
+	return x&y + (x^y)>>1
+}
+
+// MeanI4 returns average of x, y. Mathematically equivalent to floor((x+y)/2).
+func MeanI4(x, y int32) int32 {
+	return x&y + (x^y)>>1
 }

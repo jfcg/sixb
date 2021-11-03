@@ -229,7 +229,7 @@ func TestCmp(t *testing.T) {
 	}
 }
 
-var mnt = [...]string{
+var strt = [...]string{
 	"", "B", "!", // in1 < in2, out
 	"abc", "cde", "bcd",
 	"abc", "abd", "abc",
@@ -243,29 +243,127 @@ var mnt = [...]string{
 	"致命的", "警告abc", "蚭呤$~s",
 }
 
-func TestMean(t *testing.T) {
-
-	for i := len(mnt) - 1; i > 0; i -= 3 {
-		// MeanStr(in1,in2) = out ?
-		m := MeanStr(mnt[i-2], mnt[i-1])
-		if m != mnt[i] {
-			t.Fatal("MeanStr: expected:", mnt[i], "got:", m)
+func TestMeanS(t *testing.T) {
+	for i := len(strt) - 1; i > 0; i -= 3 {
+		// MeanS(in1,in2) = out ?
+		m := MeanS(strt[i-2], strt[i-1])
+		if m != strt[i] {
+			t.Fatal("MeanS: expected:", strt[i], "got:", m)
 		}
-		// MeanStr(in2,in1) = out ?
-		m2 := MeanStr(mnt[i-1], mnt[i-2])
+		// MeanS(in2,in1) = out ?
+		m2 := MeanS(strt[i-1], strt[i-2])
 		if m != m2 {
-			t.Fatal("MeanStr: different means:", m, m2)
+			t.Fatal("MeanS: different means:", m, m2)
 		}
-		// in1 <= MeanStr(in1,in2) < in2 ?
-		if !(mnt[i-2] <= m && m < mnt[i-1]) {
-			t.Fatal("MeanStr: bad order:", mnt[i-2], m, mnt[i-1])
+		// in1 <= MeanS(in1,in2) < in2 ?
+		if !(strt[i-2] <= m && m < strt[i-1]) {
+			t.Fatal("MeanS: bad order:", strt[i-2], m, strt[i-1])
 		}
 	}
-	for i := len(mnt) - 1; i >= 0; i-- {
-		// MeanStr(in,in) = in ?
-		m := MeanStr(mnt[i], mnt[i])
-		if m != mnt[i] {
-			t.Fatal("MeanStr: same expected:", mnt[i], "got:", m)
+	for i := len(strt) - 1; i >= 0; i-- {
+		// MeanS(in,in) = in ?
+		m := MeanS(strt[i], strt[i])
+		if m != strt[i] {
+			t.Fatal("MeanS: same expected:", strt[i], "got:", m)
+		}
+	}
+}
+
+var u4t = [...]uint32{
+	0, 1, 0,
+	100, 200, 150, // in1 < in2, out
+	101, 200, 150,
+
+	1<<31 - 200, 1<<31 - 100, 1<<31 - 150,
+	1<<31 - 200, 1<<31 - 101, 1<<31 - 151,
+	1<<32 - 200, 1<<32 - 100, 1<<32 - 150,
+	1<<32 - 200, 1<<32 - 101, 1<<32 - 151,
+
+	1<<31 - 200, 1<<32 - 100, 3<<30 - 150,
+	1<<31 - 200, 1<<32 - 101, 3<<30 - 151,
+	1<<31 - 200, 1<<32 - 100, 3<<30 - 150,
+	1<<31 - 200, 1<<32 - 101, 3<<30 - 151,
+
+	1<<31 - 1, 1 << 31, 1<<31 - 1,
+	1 << 31, 1<<31 + 1, 1 << 31,
+	1<<31 - 1, 1<<32 - 1, 3<<30 - 1,
+	1<<32 - 2, 1<<32 - 1, 1<<32 - 2,
+}
+
+func TestMeanU4(t *testing.T) {
+	for i := len(u4t) - 1; i > 0; i -= 3 {
+		// MeanU4(in1,in2) = out ?
+		m := MeanU4(u4t[i-2], u4t[i-1])
+		if m != u4t[i] {
+			t.Fatal("MeanU4: expected:", u4t[i], "got:", m)
+		}
+		// MeanU4(in2,in1) = out ?
+		m2 := MeanU4(u4t[i-1], u4t[i-2])
+		if m != m2 {
+			t.Fatal("MeanU4: different means:", m, m2)
+		}
+		// in1 <= MeanU4(in1,in2) < in2 ?
+		if !(u4t[i-2] <= m && m < u4t[i-1]) {
+			t.Fatal("MeanU4: bad order:", u4t[i-2], m, u4t[i-1])
+		}
+	}
+	for i := len(u4t) - 1; i >= 0; i-- {
+		// MeanU4(in,in) = in ?
+		m := MeanU4(u4t[i], u4t[i])
+		if m != u4t[i] {
+			t.Fatal("MeanU4: same expected:", u4t[i], "got:", m)
+		}
+	}
+}
+
+var i4t = [...]int32{
+	100, 200, 150, // in1 < in2, out
+	101, 200, 150,
+	-200, -100, -150,
+	-200, -101, -151,
+
+	-100, 100, 0,
+	-101, 101, 0,
+	100 - 1<<31, 1<<31 - 100, 0,
+	101 - 1<<31, 1<<31 - 101, 0,
+
+	1<<31 - 200, 1<<31 - 100, 1<<31 - 150,
+	1<<31 - 200, 1<<31 - 101, 1<<31 - 151,
+	100 - 1<<31, 200 - 1<<31, 150 - 1<<31,
+	101 - 1<<31, 200 - 1<<31, 150 - 1<<31,
+
+	100 - 1<<31, 1<<31 - 200, -50,
+	100 - 1<<31, 1<<31 - 201, -51,
+	200 - 1<<31, 1<<31 - 100, 50,
+	201 - 1<<31, 1<<31 - 100, 50,
+
+	1 - 1<<31, 1<<31 - 1, 0,
+	-1 << 31, 1<<31 - 1, -1,
+	-1 << 31, 1 - 1<<31, -1 << 31,
+}
+
+func TestMeanI4(t *testing.T) {
+	for i := len(i4t) - 1; i > 0; i -= 3 {
+		// MeanI4(in1,in2) = out ?
+		m := MeanI4(i4t[i-2], i4t[i-1])
+		if m != i4t[i] {
+			t.Fatal("MeanI4: expected:", i4t[i], "got:", m)
+		}
+		// MeanI4(in2,in1) = out ?
+		m2 := MeanI4(i4t[i-1], i4t[i-2])
+		if m != m2 {
+			t.Fatal("MeanI4: different means:", m, m2)
+		}
+		// in1 <= MeanI4(in1,in2) < in2 ?
+		if !(i4t[i-2] <= m && m < i4t[i-1]) {
+			t.Fatal("MeanI4: bad order:", i4t[i-2], m, i4t[i-1])
+		}
+	}
+	for i := len(i4t) - 1; i >= 0; i-- {
+		// MeanI4(in,in) = in ?
+		m := MeanI4(i4t[i], i4t[i])
+		if m != i4t[i] {
+			t.Fatal("MeanI4: same expected:", i4t[i], "got:", m)
 		}
 	}
 }
