@@ -98,3 +98,13 @@ func MeanU8(x, y uint64) uint64 {
 func MeanI8(x, y int64) int64 {
 	return x&y + (x^y)>>1
 }
+
+// MeanU returns average of x, y. Mathematically equivalent to floor((x+y)/2).
+func MeanU(x, y uint) uint {
+	return x&y + (x^y)>>1
+}
+
+// MeanI returns average of x, y. Mathematically equivalent to floor((x+y)/2).
+func MeanI(x, y int) int {
+	return x&y + (x^y)>>1
+}
