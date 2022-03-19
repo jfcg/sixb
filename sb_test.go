@@ -1,4 +1,4 @@
-/*	Copyright (c) 2019, Serhat Şevki Dinçer.
+/*	Copyright (c) 2019-present, Serhat Şevki Dinçer.
 	This Source Code Form is subject to the terms of the Mozilla Public
 	License, v. 2.0. If a copy of the MPL was not distributed with this
 	file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -12,7 +12,7 @@ import (
 )
 
 // AnumToSixb & SixbToAnum bijection & domain
-func Test1(t *testing.T) {
+func TestSixb(t *testing.T) {
 	if len(AnumToSixb) != 256 || len(SixbToAnum) != 256 {
 		t.Fatal("invalid lengths")
 	}
@@ -74,7 +74,7 @@ func badb(q []byte) bool {
 }
 
 // slice conversions
-func Test2(t *testing.T) {
+func TestSlice(t *testing.T) {
 	y := BtoU8(buf)
 	z := U8toB(y)
 	p := BtoU4(buf)
@@ -91,7 +91,7 @@ func Test2(t *testing.T) {
 }
 
 // slice conversions
-func Test2a(t *testing.T) {
+func TestSlice2(t *testing.T) {
 	p := BtoU4(buf)
 	y := U4toU8(p)
 	z := U8toU4(y)
@@ -107,7 +107,7 @@ func Test2a(t *testing.T) {
 }
 
 // nil string/slice conversions
-func Test2b(t *testing.T) {
+func TestSlice3(t *testing.T) {
 	var (
 		s string
 		a []byte
@@ -125,7 +125,7 @@ func Test2b(t *testing.T) {
 }
 
 // string conversions
-func Test3(t *testing.T) {
+func TestString(t *testing.T) {
 	a := StoU8(str)
 	b := U8toS(a)
 	r := StoU4(str)
@@ -142,7 +142,7 @@ func Test3(t *testing.T) {
 }
 
 // string conversions
-func Test3b(t *testing.T) {
+func TestString2(t *testing.T) {
 	a := StoB(big)
 	b := StoB(str)
 	c := BtoS(buf)
@@ -173,7 +173,7 @@ func badStr(a []String) bool {
 }
 
 // []String conversions
-func Test4(t *testing.T) {
+func TestString3(t *testing.T) {
 	buf := []byte(big)
 	a := BtoStrs(buf)
 	b := U8toStrs(BtoU8(buf))
@@ -197,7 +197,7 @@ func badSlc(a []Slice) bool {
 }
 
 // []String conversions
-func Test4b(t *testing.T) {
+func TestString4(t *testing.T) {
 	buf := []byte(big)
 	a := BtoSlcs(buf)
 	b := U8toSlcs(BtoU8(buf))
@@ -208,18 +208,18 @@ func Test4b(t *testing.T) {
 	}
 }
 
-var cmp = [...]string{"", "A", "AA", "AB", "B", "BA", "BB"}
+var cmpArr = [...]string{"", "A", "AA", "AB", "B", "BA", "BB"}
 
 func TestCmp(t *testing.T) {
-	for i := len(cmp) - 1; i >= 0; i-- {
-		s := cmp[i]
+	for i := len(cmpArr) - 1; i >= 0; i-- {
+		s := cmpArr[i]
 		b := []byte(s)
 		if CmpS(s, s) != 0 || CmpB(b, b) != 0 {
 			t.Fatal(s, "must be equal to itself")
 		}
 
 		for k := i - 1; k >= 0; k-- {
-			r := cmp[k]
+			r := cmpArr[k]
 			a := []byte(r)
 			if CmpS(r, s) != -1 || CmpS(s, r) != 1 ||
 				CmpB(a, b) != -1 || CmpB(b, a) != 1 {
@@ -229,7 +229,7 @@ func TestCmp(t *testing.T) {
 	}
 }
 
-var strt = [...]string{
+var strTable = [...]string{
 	"", "B", "!", // in1 < in2, out
 	"abc", "cde", "bcd",
 	"abc", "abd", "abc",
@@ -244,32 +244,32 @@ var strt = [...]string{
 }
 
 func TestMeanS(t *testing.T) {
-	for i := len(strt) - 1; i > 0; i -= 3 {
+	for i := len(strTable) - 1; i > 0; i -= 3 {
 		// MeanS(in1,in2) = out ?
-		m := MeanS(strt[i-2], strt[i-1])
-		if m != strt[i] {
-			t.Fatal("MeanS: expected:", strt[i], "got:", m)
+		m := MeanS(strTable[i-2], strTable[i-1])
+		if m != strTable[i] {
+			t.Fatal("MeanS: expected:", strTable[i], "got:", m)
 		}
 		// MeanS(in2,in1) = out ?
-		m2 := MeanS(strt[i-1], strt[i-2])
+		m2 := MeanS(strTable[i-1], strTable[i-2])
 		if m != m2 {
 			t.Fatal("MeanS: different means:", m, m2)
 		}
 		// in1 <= MeanS(in1,in2) < in2 ?
-		if !(strt[i-2] <= m && m < strt[i-1]) {
-			t.Fatal("MeanS: bad order:", strt[i-2], m, strt[i-1])
+		if !(strTable[i-2] <= m && m < strTable[i-1]) {
+			t.Fatal("MeanS: bad order:", strTable[i-2], m, strTable[i-1])
 		}
 	}
-	for i := len(strt) - 1; i >= 0; i-- {
+	for i := len(strTable) - 1; i >= 0; i-- {
 		// MeanS(in,in) = in ?
-		m := MeanS(strt[i], strt[i])
-		if m != strt[i] {
-			t.Fatal("MeanS: same expected:", strt[i], "got:", m)
+		m := MeanS(strTable[i], strTable[i])
+		if m != strTable[i] {
+			t.Fatal("MeanS: same expected:", strTable[i], "got:", m)
 		}
 	}
 }
 
-var u4t = [...]uint32{
+var u4Table = [...]uint32{
 	0, 1, 0,
 	100, 200, 150, // in1 < in2, out
 	101, 200, 150,
@@ -291,32 +291,32 @@ var u4t = [...]uint32{
 }
 
 func TestMeanU4(t *testing.T) {
-	for i := len(u4t) - 1; i > 0; i -= 3 {
+	for i := len(u4Table) - 1; i > 0; i -= 3 {
 		// MeanU4(in1,in2) = out ?
-		m := MeanU4(u4t[i-2], u4t[i-1])
-		if m != u4t[i] {
-			t.Fatal("MeanU4: expected:", u4t[i], "got:", m)
+		m := MeanU4(u4Table[i-2], u4Table[i-1])
+		if m != u4Table[i] {
+			t.Fatal("MeanU4: expected:", u4Table[i], "got:", m)
 		}
 		// MeanU4(in2,in1) = out ?
-		m2 := MeanU4(u4t[i-1], u4t[i-2])
+		m2 := MeanU4(u4Table[i-1], u4Table[i-2])
 		if m != m2 {
 			t.Fatal("MeanU4: different means:", m, m2)
 		}
 		// in1 <= MeanU4(in1,in2) < in2 ?
-		if !(u4t[i-2] <= m && m < u4t[i-1]) {
-			t.Fatal("MeanU4: bad order:", u4t[i-2], m, u4t[i-1])
+		if !(u4Table[i-2] <= m && m < u4Table[i-1]) {
+			t.Fatal("MeanU4: bad order:", u4Table[i-2], m, u4Table[i-1])
 		}
 	}
-	for i := len(u4t) - 1; i >= 0; i-- {
+	for i := len(u4Table) - 1; i >= 0; i-- {
 		// MeanU4(in,in) = in ?
-		m := MeanU4(u4t[i], u4t[i])
-		if m != u4t[i] {
-			t.Fatal("MeanU4: same expected:", u4t[i], "got:", m)
+		m := MeanU4(u4Table[i], u4Table[i])
+		if m != u4Table[i] {
+			t.Fatal("MeanU4: same expected:", u4Table[i], "got:", m)
 		}
 	}
 }
 
-var i4t = [...]int32{
+var i4Table = [...]int32{
 	100, 200, 150, // in1 < in2, out
 	101, 200, 150,
 	-200, -100, -150,
@@ -343,32 +343,32 @@ var i4t = [...]int32{
 }
 
 func TestMeanI4(t *testing.T) {
-	for i := len(i4t) - 1; i > 0; i -= 3 {
+	for i := len(i4Table) - 1; i > 0; i -= 3 {
 		// MeanI4(in1,in2) = out ?
-		m := MeanI4(i4t[i-2], i4t[i-1])
-		if m != i4t[i] {
-			t.Fatal("MeanI4: expected:", i4t[i], "got:", m)
+		m := MeanI4(i4Table[i-2], i4Table[i-1])
+		if m != i4Table[i] {
+			t.Fatal("MeanI4: expected:", i4Table[i], "got:", m)
 		}
 		// MeanI4(in2,in1) = out ?
-		m2 := MeanI4(i4t[i-1], i4t[i-2])
+		m2 := MeanI4(i4Table[i-1], i4Table[i-2])
 		if m != m2 {
 			t.Fatal("MeanI4: different means:", m, m2)
 		}
 		// in1 <= MeanI4(in1,in2) < in2 ?
-		if !(i4t[i-2] <= m && m < i4t[i-1]) {
-			t.Fatal("MeanI4: bad order:", i4t[i-2], m, i4t[i-1])
+		if !(i4Table[i-2] <= m && m < i4Table[i-1]) {
+			t.Fatal("MeanI4: bad order:", i4Table[i-2], m, i4Table[i-1])
 		}
 	}
-	for i := len(i4t) - 1; i >= 0; i-- {
+	for i := len(i4Table) - 1; i >= 0; i-- {
 		// MeanI4(in,in) = in ?
-		m := MeanI4(i4t[i], i4t[i])
-		if m != i4t[i] {
-			t.Fatal("MeanI4: same expected:", i4t[i], "got:", m)
+		m := MeanI4(i4Table[i], i4Table[i])
+		if m != i4Table[i] {
+			t.Fatal("MeanI4: same expected:", i4Table[i], "got:", m)
 		}
 	}
 }
 
-var u8t = [...]uint64{
+var u8Table = [...]uint64{
 	0, 1, 0,
 	100, 200, 150, // in1 < in2, out
 	101, 200, 150,
@@ -390,32 +390,32 @@ var u8t = [...]uint64{
 }
 
 func TestMeanU8(t *testing.T) {
-	for i := len(u8t) - 1; i > 0; i -= 3 {
+	for i := len(u8Table) - 1; i > 0; i -= 3 {
 		// MeanU8(in1,in2) = out ?
-		m := MeanU8(u8t[i-2], u8t[i-1])
-		if m != u8t[i] {
-			t.Fatal("MeanU8: expected:", u8t[i], "got:", m)
+		m := MeanU8(u8Table[i-2], u8Table[i-1])
+		if m != u8Table[i] {
+			t.Fatal("MeanU8: expected:", u8Table[i], "got:", m)
 		}
 		// MeanU8(in2,in1) = out ?
-		m2 := MeanU8(u8t[i-1], u8t[i-2])
+		m2 := MeanU8(u8Table[i-1], u8Table[i-2])
 		if m != m2 {
 			t.Fatal("MeanU8: different means:", m, m2)
 		}
 		// in1 <= MeanU8(in1,in2) < in2 ?
-		if !(u8t[i-2] <= m && m < u8t[i-1]) {
-			t.Fatal("MeanU8: bad order:", u8t[i-2], m, u8t[i-1])
+		if !(u8Table[i-2] <= m && m < u8Table[i-1]) {
+			t.Fatal("MeanU8: bad order:", u8Table[i-2], m, u8Table[i-1])
 		}
 	}
-	for i := len(u8t) - 1; i >= 0; i-- {
+	for i := len(u8Table) - 1; i >= 0; i-- {
 		// MeanU8(in,in) = in ?
-		m := MeanU8(u8t[i], u8t[i])
-		if m != u8t[i] {
-			t.Fatal("MeanU8: same expected:", u8t[i], "got:", m)
+		m := MeanU8(u8Table[i], u8Table[i])
+		if m != u8Table[i] {
+			t.Fatal("MeanU8: same expected:", u8Table[i], "got:", m)
 		}
 	}
 }
 
-var i8t = [...]int64{
+var i8Table = [...]int64{
 	100, 200, 150, // in1 < in2, out
 	101, 200, 150,
 	-200, -100, -150,
@@ -442,27 +442,27 @@ var i8t = [...]int64{
 }
 
 func TestMeanI8(t *testing.T) {
-	for i := len(i8t) - 1; i > 0; i -= 3 {
+	for i := len(i8Table) - 1; i > 0; i -= 3 {
 		// MeanI8(in1,in2) = out ?
-		m := MeanI8(i8t[i-2], i8t[i-1])
-		if m != i8t[i] {
-			t.Fatal("MeanI8: expected:", i8t[i], "got:", m)
+		m := MeanI8(i8Table[i-2], i8Table[i-1])
+		if m != i8Table[i] {
+			t.Fatal("MeanI8: expected:", i8Table[i], "got:", m)
 		}
 		// MeanI8(in2,in1) = out ?
-		m2 := MeanI8(i8t[i-1], i8t[i-2])
+		m2 := MeanI8(i8Table[i-1], i8Table[i-2])
 		if m != m2 {
 			t.Fatal("MeanI8: different means:", m, m2)
 		}
 		// in1 <= MeanI8(in1,in2) < in2 ?
-		if !(i8t[i-2] <= m && m < i8t[i-1]) {
-			t.Fatal("MeanI8: bad order:", i8t[i-2], m, i8t[i-1])
+		if !(i8Table[i-2] <= m && m < i8Table[i-1]) {
+			t.Fatal("MeanI8: bad order:", i8Table[i-2], m, i8Table[i-1])
 		}
 	}
-	for i := len(i8t) - 1; i >= 0; i-- {
+	for i := len(i8Table) - 1; i >= 0; i-- {
 		// MeanI8(in,in) = in ?
-		m := MeanI8(i8t[i], i8t[i])
-		if m != i8t[i] {
-			t.Fatal("MeanI8: same expected:", i8t[i], "got:", m)
+		m := MeanI8(i8Table[i], i8Table[i])
+		if m != i8Table[i] {
+			t.Fatal("MeanI8: same expected:", i8Table[i], "got:", m)
 		}
 	}
 }
