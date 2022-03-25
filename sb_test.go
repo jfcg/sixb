@@ -108,18 +108,22 @@ func TestSlice2(t *testing.T) {
 
 // nil string/slice conversions
 func TestSlice3(t *testing.T) {
-	var (
-		s string
-		a []byte
-		b []uint32
-		c []uint64
-	)
+	var s string
+	var a []byte
 
-	if StoB(s) != nil || StoU4(s) != nil || StoU8(s) != nil ||
-		U4toS(b) != "" || U8toS(c) != "" ||
-		BtoU4(a) != nil || BtoU8(a) != nil || U4toB(b) != nil || U8toB(c) != nil ||
-		BtoStrs(a) != nil || U4toStrs(b) != nil || U8toStrs(c) != nil ||
-		BtoSlcs(a) != nil || U4toSlcs(b) != nil || U8toSlcs(c) != nil {
+	if StoB(s) != nil || StoU4(s) != nil || StoU8(s) != nil || BtoU4(a) != nil ||
+		BtoU8(a) != nil || BtoStrs(a) != nil || BtoSlcs(a) != nil {
+		t.Fatal("nil string/slice conversion error")
+	}
+}
+
+func TestSlice3b(t *testing.T) {
+	var b []uint32
+	var c []uint64
+
+	if U4toS(b) != "" || U8toS(c) != "" || U4toB(b) != nil ||
+		U8toB(c) != nil || U4toStrs(b) != nil || U8toStrs(c) != nil ||
+		U4toSlcs(b) != nil || U8toSlcs(c) != nil {
 		t.Fatal("nil string/slice conversion error")
 	}
 }
