@@ -36,7 +36,7 @@ func CmpS(a, b string) (r int) {
 //   0 for a = b
 //   1 for a > b
 func CmpB(a, b []byte) int {
-	return CmpS(string(a), string(b))
+	return CmpS(BtoS(a), BtoS(b))
 }
 
 // MeanS returns lexicographic average of s1 & s2. It treats ascii specially. The result is
@@ -77,7 +77,7 @@ func MeanS(s1, s2 string) string {
 	}
 	avg[0] = byte(sum >> 1)
 
-	return string(avg)
+	return BtoS(avg)
 }
 
 // MeanU4 returns average of x, y. Mathematically equivalent to floor((x+y)/2).

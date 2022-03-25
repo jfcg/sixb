@@ -63,7 +63,7 @@ func TestCopy(t *testing.T) {
 		t.Fatal("InsideTest does not work")
 	}
 	b := Copy(buf)
-	if &b[0] == &buf[0] || string(b) != string(buf) {
+	if &b[0] == &buf[0] || BtoS(b) != BtoS(buf) {
 		t.Fatal("Copy does not work")
 	}
 }
@@ -241,6 +241,16 @@ var strTable = [...]string{
 	"Golang", "Python", "L4pe/*",
 	"JAVA", "RUST", "NKU\n",
 	"致命的", "警告abc", "蚭呤$~s",
+}
+
+func BenchmarkMeanS(b *testing.B) {
+	var res string
+	for i := 0; i < b.N; i++ {
+		res = MeanS(strTable[9], strTable[10])
+	}
+	if res != strTable[11] {
+		b.Fatal("MeanS error")
+	}
 }
 
 func TestMeanS(t *testing.T) {
