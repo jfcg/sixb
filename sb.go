@@ -134,12 +134,8 @@ func U8toB(i []uint64) (b []byte) {
 }
 
 // BtoS converts byte slice to string
-func BtoS(b []byte) (s string) {
-	B := (*Slice)(unsafe.Pointer(&b))
-	S := (*String)(unsafe.Pointer(&s))
-	S.Data = B.Data
-	S.Len = B.Len
-	return
+func BtoS(b []byte) string {
+	return *(*string)(unsafe.Pointer(&b))
 }
 
 // StoB converts string to byte slice
@@ -147,8 +143,9 @@ func StoB(s string) (b []byte) {
 	B := (*Slice)(unsafe.Pointer(&b))
 	S := (*String)(unsafe.Pointer(&s))
 	B.Data = S.Data
-	B.Len = S.Len
-	B.Cap = B.Len
+	l := S.Len
+	B.Len = l
+	B.Cap = l
 	return
 }
 
