@@ -4,7 +4,7 @@
 	file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-// Package sixb provides some string utility functions
+// Package sixb provides some string, slice & integer utility functions
 package sixb
 
 import (
@@ -78,8 +78,9 @@ func BtoU4(b []byte) (i []uint32) {
 	I := (*Slice)(unsafe.Pointer(&i))
 	B := (*Slice)(unsafe.Pointer(&b))
 	I.Data = B.Data
-	I.Len = B.Len >> 2
-	I.Cap = I.Len
+	l := B.Len >> 2
+	I.Len = l
+	I.Cap = l
 	return
 }
 
@@ -88,8 +89,9 @@ func U4toB(i []uint32) (b []byte) {
 	I := (*Slice)(unsafe.Pointer(&i))
 	B := (*Slice)(unsafe.Pointer(&b))
 	B.Data = I.Data
-	B.Len = I.Len << 2
-	B.Cap = B.Len
+	l := I.Len << 2
+	B.Len = l
+	B.Cap = l
 	return
 }
 
@@ -98,8 +100,9 @@ func U4toU8(i []uint32) (k []uint64) {
 	I := (*Slice)(unsafe.Pointer(&i))
 	K := (*Slice)(unsafe.Pointer(&k))
 	K.Data = I.Data
-	K.Len = I.Len >> 1
-	K.Cap = K.Len
+	l := I.Len >> 1
+	K.Len = l
+	K.Cap = l
 	return
 }
 
@@ -108,8 +111,9 @@ func U8toU4(i []uint64) (k []uint32) {
 	I := (*Slice)(unsafe.Pointer(&i))
 	K := (*Slice)(unsafe.Pointer(&k))
 	K.Data = I.Data
-	K.Len = I.Len << 1
-	K.Cap = K.Len
+	l := I.Len << 1
+	K.Len = l
+	K.Cap = l
 	return
 }
 
@@ -118,8 +122,9 @@ func BtoU8(b []byte) (i []uint64) {
 	I := (*Slice)(unsafe.Pointer(&i))
 	B := (*Slice)(unsafe.Pointer(&b))
 	I.Data = B.Data
-	I.Len = B.Len >> 3
-	I.Cap = I.Len
+	l := B.Len >> 3
+	I.Len = l
+	I.Cap = l
 	return
 }
 
@@ -128,8 +133,9 @@ func U8toB(i []uint64) (b []byte) {
 	I := (*Slice)(unsafe.Pointer(&i))
 	B := (*Slice)(unsafe.Pointer(&b))
 	B.Data = I.Data
-	B.Len = I.Len << 3
-	B.Cap = B.Len
+	l := I.Len << 3
+	B.Len = l
+	B.Cap = l
 	return
 }
 
@@ -154,8 +160,9 @@ func StoU4(s string) (i []uint32) {
 	I := (*Slice)(unsafe.Pointer(&i))
 	S := (*String)(unsafe.Pointer(&s))
 	I.Data = S.Data
-	I.Len = S.Len >> 2
-	I.Cap = I.Len
+	l := S.Len >> 2
+	I.Len = l
+	I.Cap = l
 	return
 }
 
@@ -173,8 +180,9 @@ func StoU8(s string) (i []uint64) {
 	I := (*Slice)(unsafe.Pointer(&i))
 	S := (*String)(unsafe.Pointer(&s))
 	I.Data = S.Data
-	I.Len = S.Len >> 3
-	I.Cap = I.Len
+	l := S.Len >> 3
+	I.Len = l
+	I.Cap = l
 	return
 }
 
@@ -200,8 +208,9 @@ func BtoStrs(b []byte) (ss []String) {
 	B := (*Slice)(unsafe.Pointer(&b))
 	S := (*Slice)(unsafe.Pointer(&ss))
 	S.Data = B.Data
-	S.Len = B.Len / StrSize
-	S.Cap = S.Len
+	l := B.Len / StrSize
+	S.Len = l
+	S.Cap = l
 	return
 }
 
@@ -210,8 +219,9 @@ func U4toStrs(i []uint32) (ss []String) {
 	I := (*Slice)(unsafe.Pointer(&i))
 	S := (*Slice)(unsafe.Pointer(&ss))
 	S.Data = I.Data
-	S.Len = 4 * I.Len / StrSize
-	S.Cap = S.Len
+	l := 4 * I.Len / StrSize
+	S.Len = l
+	S.Cap = l
 	return
 }
 
@@ -220,8 +230,9 @@ func U8toStrs(i []uint64) (ss []String) {
 	I := (*Slice)(unsafe.Pointer(&i))
 	S := (*Slice)(unsafe.Pointer(&ss))
 	S.Data = I.Data
-	S.Len = 8 * I.Len / StrSize
-	S.Cap = S.Len
+	l := 8 * I.Len / StrSize
+	S.Len = l
+	S.Cap = l
 	return
 }
 
@@ -230,8 +241,9 @@ func BtoSlcs(b []byte) (ss []Slice) {
 	B := (*Slice)(unsafe.Pointer(&b))
 	S := (*Slice)(unsafe.Pointer(&ss))
 	S.Data = B.Data
-	S.Len = B.Len / SliceSize
-	S.Cap = S.Len
+	l := B.Len / SliceSize
+	S.Len = l
+	S.Cap = l
 	return
 }
 
@@ -240,8 +252,9 @@ func U4toSlcs(i []uint32) (ss []Slice) {
 	I := (*Slice)(unsafe.Pointer(&i))
 	S := (*Slice)(unsafe.Pointer(&ss))
 	S.Data = I.Data
-	S.Len = 4 * I.Len / SliceSize
-	S.Cap = S.Len
+	l := 4 * I.Len / SliceSize
+	S.Len = l
+	S.Cap = l
 	return
 }
 
@@ -250,7 +263,8 @@ func U8toSlcs(i []uint64) (ss []Slice) {
 	I := (*Slice)(unsafe.Pointer(&i))
 	S := (*Slice)(unsafe.Pointer(&ss))
 	S.Data = I.Data
-	S.Len = 8 * I.Len / SliceSize
-	S.Cap = S.Len
+	l := 8 * I.Len / SliceSize
+	S.Len = l
+	S.Cap = l
 	return
 }

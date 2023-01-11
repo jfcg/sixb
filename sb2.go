@@ -6,10 +6,13 @@
 
 package sixb
 
-// CmpS compares a,b lexicographically and returns:
-//  -1 for a < b
-//   0 for a = b
-//   1 for a > b
+// CmpS compares a, b lexicographically and returns:
+//
+//	-1 for a < b
+//	 0 for a = b
+//	 1 for a > b
+//
+//go:nosplit
 func CmpS(a, b string) (r int) {
 	n, k := len(a), len(b)
 	if n > k {
@@ -31,16 +34,19 @@ func CmpS(a, b string) (r int) {
 	return
 }
 
-// CmpB compares a,b lexicographically and returns:
-//  -1 for a < b
-//   0 for a = b
-//   1 for a > b
+// CmpB compares a, b lexicographically and returns:
+//
+//	-1 for a < b
+//	 0 for a = b
+//	 1 for a > b
 func CmpB(a, b []byte) int {
 	return CmpS(BtoS(a), BtoS(b))
 }
 
 // MeanS returns lexicographic average of s1 & s2. It treats ascii specially. The result is
 // (len(s1)+len(s2)+1)/2 bytes and may contain unprintable characters or may not be valid utf8.
+//
+//go:nosplit
 func MeanS(s1, s2 string) string {
 	if len(s2) < len(s1) {
 		s1, s2 = s2, s1
