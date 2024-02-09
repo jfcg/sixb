@@ -1,3 +1,3 @@
 module github.com/jfcg/sixb
 
-go 1.19
+go 1.21
