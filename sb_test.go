@@ -9,7 +9,6 @@ package sixb
 import (
 	"cmp"
 	"testing"
-	"unsafe"
 )
 
 // AnumToSixb & SixbToAnum bijection & domain
@@ -49,8 +48,8 @@ func TestSixb(t *testing.T) {
 
 var (
 	big = "qwert123qwert123qwert123"
-	str = big[:9]
-	buf = []byte(str)
+	sml = big[:9]
+	buf = []byte(sml)
 )
 
 const (
@@ -64,7 +63,7 @@ func TestCopy(t *testing.T) {
 		t.Fatal("InsideTest does not work")
 	}
 	b := Copy(buf)
-	if &b[0] == &buf[0] || BtoS(b) != BtoS(buf) {
+	if &b[0] == &buf[0] || String(b) != String(buf) {
 		t.Fatal("Copy does not work")
 	}
 }
@@ -76,16 +75,16 @@ func badb(q []byte) bool {
 
 // slice conversions
 func TestSlice(t *testing.T) {
-	y := BtoU8(buf)
-	z := U8toB(y)
-	p := BtoU4(buf)
-	q := U4toB(p)
+	y := Slice[uint64](buf)
+	z := Slice[byte](y)
+	p := Slice[uint32](buf)
+	q := Slice[byte](p)
 
-	if unsafe.Sizeof(buf) != unsafe.Sizeof(Slice{}) ||
+	if Size(buf) != Size(slc{}) ||
 		len(y) != 1 || cap(y) != 1 || y[0] != cn2 ||
 		len(p) != 2 || cap(p) != 2 || p[0] != cn0 || p[1] != cn1 ||
-		unsafe.Pointer(&y[0]) != unsafe.Pointer(&p[0]) ||
-		unsafe.Pointer(&y[0]) != unsafe.Pointer(&buf[0]) ||
+		!SamePtr(&y[0], &p[0]) ||
+		!SamePtr(&y[0], &buf[0]) ||
 		badb(z) || badb(q) {
 		t.Fatal("slice conversion error")
 	}
@@ -93,16 +92,15 @@ func TestSlice(t *testing.T) {
 
 // slice conversions
 func TestSlice2(t *testing.T) {
-	p := BtoU4(buf)
-	y := U4toU8(p)
-	z := U8toU4(y)
-	a := unsafe.Pointer(&y[0])
+	p := Slice[uint32](buf)
+	y := Slice[uint64](p)
+	z := Slice[uint32](y)
 
 	if len(y) != 1 || cap(y) != 1 || y[0] != cn2 ||
 		len(p) != 2 || cap(p) != 2 || p[0] != cn0 || p[1] != cn1 ||
 		len(z) != 2 || cap(z) != 2 || z[0] != cn0 || z[1] != cn1 ||
-		a != unsafe.Pointer(&p[0]) || a != unsafe.Pointer(&z[0]) ||
-		a != unsafe.Pointer(&buf[0]) {
+		!SamePtr(&y[0], &p[0]) || !SamePtr(&y[0], &z[0]) ||
+		!SamePtr(&y[0], &buf[0]) {
 		t.Fatal("slice conversion error")
 	}
 }
@@ -112,8 +110,9 @@ func TestSlice3(t *testing.T) {
 	var s string
 	var a []byte
 
-	if StoB(s) != nil || StoU4(s) != nil || StoU8(s) != nil || BtoU4(a) != nil ||
-		BtoU8(a) != nil || BtoStrs(a) != nil || BtoSlcs(a) != nil {
+	if Bytes(s) != nil || Integers[uint32](s) != nil ||
+		Integers[uint64](s) != nil || Slice[uint32](a) != nil ||
+		Slice[uint64](a) != nil || Slice[str](a) != nil || Slice[slc](a) != nil {
 		t.Fatal("nil string/slice conversion error")
 	}
 }
@@ -122,67 +121,67 @@ func TestSlice3b(t *testing.T) {
 	var b []uint32
 	var c []uint64
 
-	if U4toS(b) != "" || U8toS(c) != "" || U4toB(b) != nil ||
-		U8toB(c) != nil || U4toStrs(b) != nil || U8toStrs(c) != nil ||
-		U4toSlcs(b) != nil || U8toSlcs(c) != nil {
+	if String(b) != "" || String(c) != "" || Slice[byte](b) != nil ||
+		Slice[byte](c) != nil || Slice[str](b) != nil || Slice[str](c) != nil ||
+		Slice[slc](b) != nil || Slice[slc](c) != nil {
 		t.Fatal("nil string/slice conversion error")
 	}
 }
 
 // string conversions
 func TestString(t *testing.T) {
-	a := StoU8(str)
-	b := U8toS(a)
-	r := StoU4(str)
-	s := U4toS(r)
+	a := Integers[uint64](sml)
+	b := String(a)
+	r := Integers[uint32](sml)
+	s := String(r)
 
-	if SliceSize != int(unsafe.Sizeof(Slice{})) ||
-		StrSize != int(unsafe.Sizeof(String{})) ||
+	if Size([]byte{}) != Size(slc{}) ||
+		Size("") != Size(str{}) ||
 		len(a) != 1 || cap(a) != 1 || a[0] != cn2 ||
 		len(r) != 2 || cap(r) != 2 || r[0] != cn0 || r[1] != cn1 ||
-		unsafe.Pointer(&a[0]) == unsafe.Pointer(&buf[0]) ||
-		unsafe.Pointer(&a[0]) != unsafe.Pointer(&r[0]) || b != str[:8] || s != str[:8] {
+		SamePtr(&a[0], &buf[0]) || !SamePtr(&a[0], &r[0]) ||
+		b != sml[:8] || s != sml[:8] {
 		t.Fatal("string conversion error")
 	}
 }
 
 // string conversions
 func TestString2(t *testing.T) {
-	a := StoB(big)
-	b := StoB(str)
-	c := BtoS(buf)
+	a := Bytes(big)
+	b := Bytes(sml)
+	c := String(buf)
 
-	if len(a) != len(big) || len(b) != len(str) ||
+	if len(a) != len(big) || len(b) != len(sml) ||
 		len(a) != cap(a) || len(b) != cap(b) ||
-		len(c) != len(buf) || c != str ||
+		len(c) != len(buf) || c != sml ||
 		&a[0] != &b[0] || &a[0] == &buf[0] {
 		t.Fatal("string conversion error")
 	}
 }
 
 // != "qwert123"
-func badx(x int) bool {
+func badx(x uint) bool {
 	return uint32(x) != cn0 || uint32(x>>32) != cn1
 }
 
 // bad String slice?
-func badStr(a []String) bool {
+func badStr(a []str) bool {
 	if len(a) != cap(a) {
 		return true
 	}
-	d := uintptr(a[0].Data)
-	if StrSize == 8 {
+	d := uint(uintptr(a[0].Data))
+	if Size("") == 8 {
 		return len(a) != 3 || d != cn0 || a[0].Len != cn1
 	}
-	return len(a) != 1 || badx(int(d)) || badx(a[0].Len)
+	return len(a) != 1 || badx(d) || badx(a[0].Len)
 }
 
 // []String conversions
 func TestString3(t *testing.T) {
 	buf := []byte(big)
-	a := BtoStrs(buf)
-	b := U8toStrs(BtoU8(buf))
-	c := U4toStrs(BtoU4(buf))
+	a := Slice[str](buf)
+	b := Slice[str](Slice[uint64](buf))
+	c := Slice[str](Slice[uint32](buf))
 
 	if badStr(a) || badStr(b) || badStr(c) {
 		t.Fatal("String slice conversion error")
@@ -190,26 +189,40 @@ func TestString3(t *testing.T) {
 }
 
 // bad Slice slice?
-func badSlc(a []Slice) bool {
+func badSlc(a []slc) bool {
 	if len(a) != cap(a) {
 		return true
 	}
-	d := uintptr(a[0].Data)
-	if SliceSize == 12 {
+	d := uint(uintptr(a[0].Data))
+	if Size([]byte{}) == 12 {
 		return len(a) != 2 || d != cn0 || a[0].Len != cn1 || a[0].Cap != cn0
 	}
-	return len(a) != 1 || badx(int(d)) || badx(a[0].Len) || badx(a[0].Cap)
+	return len(a) != 1 || badx(d) || badx(a[0].Len) || badx(a[0].Cap)
 }
 
 // []String conversions
 func TestString4(t *testing.T) {
 	buf := []byte(big)
-	a := BtoSlcs(buf)
-	b := U8toSlcs(BtoU8(buf))
-	c := U4toSlcs(BtoU4(buf))
+	a := Slice[slc](buf)
+	b := Slice[slc](Slice[uint64](buf))
+	c := Slice[slc](Slice[uint32](buf))
 
 	if badSlc(a) || badSlc(b) || badSlc(c) {
 		t.Fatal("Slice slice conversion error")
+	}
+}
+
+func TestPtoU8(t *testing.T) {
+	var p *int
+	if PtrToInt(p) != 0 {
+		t.Fatal("Nil pointer must convert to to zero")
+	}
+	var arr [2]int
+	v1 := PtrToInt(&arr[0])
+	v2 := PtrToInt(&arr[1])
+	if PtrToInt(t) == 0 || v1 == 0 || v2 == 0 ||
+		v1+Size(arr[0]) != v2 {
+		t.Fatal("Pointer to unsigned integer conversion error")
 	}
 }
 
@@ -274,18 +287,10 @@ func meanTest[O cmp.Ordered](t *testing.T, mean func(O, O) O, table []O) {
 
 func TestMeans(t *testing.T) {
 	meanTest(t, MeanS, strTable)
-	meanTest(t, MeanU4, u4Table)
-	meanTest(t, MeanI4, i4Table)
-	meanTest(t, MeanU8, u8Table)
-	meanTest(t, MeanI8, i8Table)
-	meanU := func(x, y uint32) uint32 {
-		return uint32(MeanU(uint(x), uint(y)))
-	}
-	meanTest(t, meanU, u4Table)
-	meanI := func(x, y int32) int32 {
-		return int32(MeanI(int(x), int(y)))
-	}
-	meanTest(t, meanI, i4Table)
+	meanTest(t, Mean, u4Table)
+	meanTest(t, Mean, i4Table)
+	meanTest(t, Mean, u8Table)
+	meanTest(t, Mean, i8Table)
 }
 
 var strTable = []string{

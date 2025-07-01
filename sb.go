@@ -4,7 +4,8 @@
 	file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-// Package sixb provides some string, slice & integer utility functions
+// Package sixb provides string, slice & integer utility functions.
+// string/slice functions help avoid redundant memory allocations.
 package sixb
 
 import (
@@ -15,7 +16,7 @@ import (
 )
 
 // AnumToSixb is a bijection (without fixed points, single cycle and inverse of SixbToAnum)
-// that maps 0-9: @A-Z a-z onto 6-bits
+// that maps 0-9: @A-Z a-z onto 6-bits.
 var AnumToSixb = [...]byte{208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220,
 	221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237,
 	238, 239, 240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254,
@@ -32,7 +33,7 @@ var AnumToSixb = [...]byte{208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218
 	191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 153}
 
 // SixbToAnum is a bijection (without fixed points, single cycle and inverse of AnumToSixb)
-// that maps 6-bits onto 0-9: @A-Z a-z
+// that maps 6-bits onto 0-9: @A-Z a-z.
 var SixbToAnum = [...]byte{97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109,
 	110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 64, 65, 66, 67, 68,
 	69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90,
@@ -48,14 +49,14 @@ var SixbToAnum = [...]byte{97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 1
 	4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
 	27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47}
 
-// Copy creates an identical copy of x
-func Copy(x []byte) []byte {
-	r := make([]byte, len(x))
-	copy(r, x)
+// Copy creates a copy of s.
+func Copy[T any](s []T) []T {
+	r := make([]T, len(s))
+	copy(r, s)
 	return r
 }
 
-// InsideTest returns true inside a Go test
+// InsideTest returns true inside a Go test.
 func InsideTest() bool {
 	suffix := ".test"
 	if runtime.GOOS == "windows" {
@@ -65,211 +66,74 @@ func InsideTest() bool {
 		strings.HasPrefix(os.Args[1], "-test.")
 }
 
-// String internals from reflect
-type String struct {
+// SamePtr returns true if pointers a & b are same addresses in memory.
+func SamePtr[T, U any](a *T, b *U) bool {
+	return unsafe.Pointer(a) == unsafe.Pointer(b)
+}
+
+// PtrToInt converts a pointer value to an integer.
+func PtrToInt[T any](p *T) uint {
+	return uint(uintptr(unsafe.Pointer(p)))
+}
+
+type str struct {
 	Data unsafe.Pointer
-	Len  int
+	Len  uint
 }
 
-// Slice internals from reflect
-type Slice struct {
+type slc struct {
 	Data unsafe.Pointer
-	Len  int
-	Cap  int
+	Len  uint
+	Cap  uint
 }
 
-// BtoU4 converts byte slice to integer slice
-func BtoU4(b []byte) (i []uint32) {
-	I := (*Slice)(unsafe.Pointer(&i))
-	B := (*Slice)(unsafe.Pointer(&b))
-	I.Data = B.Data
-	l := B.Len >> 2
-	I.Len = l
-	I.Cap = l
+func toStr(s *string) *str {
+	return (*str)(unsafe.Pointer(s))
+}
+
+func toSlc[T any](s *[]T) *slc {
+	return (*slc)(unsafe.Pointer(s))
+}
+
+// Size of x in bytes.
+func Size[T any](x T) uint {
+	return uint(unsafe.Sizeof(x))
+}
+
+// Slice converts a slice to another slice.
+func Slice[O, I any](in []I) (out []O) {
+	src := toSlc(&in)
+	dst := toSlc(&out)
+	dst.Data = src.Data
+	var s I
+	var d O
+	n := Size(s) * src.Len / Size(d)
+	dst.Len = n
+	dst.Cap = n
 	return
 }
 
-// U4toB converts integer slice to byte slice
-func U4toB(i []uint32) (b []byte) {
-	I := (*Slice)(unsafe.Pointer(&i))
-	B := (*Slice)(unsafe.Pointer(&b))
-	B.Data = I.Data
-	l := I.Len << 2
-	B.Len = l
-	B.Cap = l
+// String converts integer slice (including []byte) to string.
+func String[T Integer](i []T) (s string) {
+	src := toSlc(&i)
+	dst := toStr(&s)
+	dst.Data = src.Data
+	dst.Len = src.Len * Size(T(0))
 	return
 }
 
-// U4toU8 converts uint32 slice to uint64 slice
-func U4toU8(i []uint32) (k []uint64) {
-	I := (*Slice)(unsafe.Pointer(&i))
-	K := (*Slice)(unsafe.Pointer(&k))
-	K.Data = I.Data
-	l := I.Len >> 1
-	K.Len = l
-	K.Cap = l
+// Integers converts string to integer slice (including []byte).
+func Integers[T Integer](s string) (i []T) {
+	src := toStr(&s)
+	dst := toSlc(&i)
+	dst.Data = src.Data
+	n := src.Len / Size(T(0))
+	dst.Len = n
+	dst.Cap = n
 	return
 }
 
-// U8toU4 converts uint64 slice to uint32 slice
-func U8toU4(i []uint64) (k []uint32) {
-	I := (*Slice)(unsafe.Pointer(&i))
-	K := (*Slice)(unsafe.Pointer(&k))
-	K.Data = I.Data
-	l := I.Len << 1
-	K.Len = l
-	K.Cap = l
-	return
-}
-
-// BtoU8 converts byte slice to integer slice
-func BtoU8(b []byte) (i []uint64) {
-	I := (*Slice)(unsafe.Pointer(&i))
-	B := (*Slice)(unsafe.Pointer(&b))
-	I.Data = B.Data
-	l := B.Len >> 3
-	I.Len = l
-	I.Cap = l
-	return
-}
-
-// U8toB converts integer slice to byte slice
-func U8toB(i []uint64) (b []byte) {
-	I := (*Slice)(unsafe.Pointer(&i))
-	B := (*Slice)(unsafe.Pointer(&b))
-	B.Data = I.Data
-	l := I.Len << 3
-	B.Len = l
-	B.Cap = l
-	return
-}
-
-// BtoS converts byte slice to string
-func BtoS(b []byte) string {
-	return *(*string)(unsafe.Pointer(&b))
-}
-
-// StoB converts string to byte slice
-func StoB(s string) (b []byte) {
-	B := (*Slice)(unsafe.Pointer(&b))
-	S := (*String)(unsafe.Pointer(&s))
-	B.Data = S.Data
-	l := S.Len
-	B.Len = l
-	B.Cap = l
-	return
-}
-
-// StoU4 converts string to integer slice
-func StoU4(s string) (i []uint32) {
-	I := (*Slice)(unsafe.Pointer(&i))
-	S := (*String)(unsafe.Pointer(&s))
-	I.Data = S.Data
-	l := S.Len >> 2
-	I.Len = l
-	I.Cap = l
-	return
-}
-
-// U4toS converts integer slice to string
-func U4toS(i []uint32) (s string) {
-	I := (*Slice)(unsafe.Pointer(&i))
-	S := (*String)(unsafe.Pointer(&s))
-	S.Data = I.Data
-	S.Len = I.Len << 2
-	return
-}
-
-// StoU8 converts string to integer slice
-func StoU8(s string) (i []uint64) {
-	I := (*Slice)(unsafe.Pointer(&i))
-	S := (*String)(unsafe.Pointer(&s))
-	I.Data = S.Data
-	l := S.Len >> 3
-	I.Len = l
-	I.Cap = l
-	return
-}
-
-// U8toS converts integer slice to string
-func U8toS(i []uint64) (s string) {
-	I := (*Slice)(unsafe.Pointer(&i))
-	S := (*String)(unsafe.Pointer(&s))
-	S.Data = I.Data
-	S.Len = I.Len << 3
-	return
-}
-
-const (
-	// StrSize is size of a string variable
-	StrSize = int(unsafe.Sizeof(""))
-
-	// SliceSize is size of a slice variable
-	SliceSize = int(unsafe.Sizeof([]byte{}))
-)
-
-// BtoStrs converts byte slice to String slice
-func BtoStrs(b []byte) (ss []String) {
-	B := (*Slice)(unsafe.Pointer(&b))
-	S := (*Slice)(unsafe.Pointer(&ss))
-	S.Data = B.Data
-	l := B.Len / StrSize
-	S.Len = l
-	S.Cap = l
-	return
-}
-
-// U4toStrs converts integer slice to String slice
-func U4toStrs(i []uint32) (ss []String) {
-	I := (*Slice)(unsafe.Pointer(&i))
-	S := (*Slice)(unsafe.Pointer(&ss))
-	S.Data = I.Data
-	l := 4 * I.Len / StrSize
-	S.Len = l
-	S.Cap = l
-	return
-}
-
-// U8toStrs converts integer slice to String slice
-func U8toStrs(i []uint64) (ss []String) {
-	I := (*Slice)(unsafe.Pointer(&i))
-	S := (*Slice)(unsafe.Pointer(&ss))
-	S.Data = I.Data
-	l := 8 * I.Len / StrSize
-	S.Len = l
-	S.Cap = l
-	return
-}
-
-// BtoSlcs converts byte slice to Slice slice
-func BtoSlcs(b []byte) (ss []Slice) {
-	B := (*Slice)(unsafe.Pointer(&b))
-	S := (*Slice)(unsafe.Pointer(&ss))
-	S.Data = B.Data
-	l := B.Len / SliceSize
-	S.Len = l
-	S.Cap = l
-	return
-}
-
-// U4toSlcs converts integer slice to Slice slice
-func U4toSlcs(i []uint32) (ss []Slice) {
-	I := (*Slice)(unsafe.Pointer(&i))
-	S := (*Slice)(unsafe.Pointer(&ss))
-	S.Data = I.Data
-	l := 4 * I.Len / SliceSize
-	S.Len = l
-	S.Cap = l
-	return
-}
-
-// U8toSlcs converts integer slice to Slice slice
-func U8toSlcs(i []uint64) (ss []Slice) {
-	I := (*Slice)(unsafe.Pointer(&i))
-	S := (*Slice)(unsafe.Pointer(&ss))
-	S.Data = I.Data
-	l := 8 * I.Len / SliceSize
-	S.Len = l
-	S.Cap = l
-	return
+// Bytes converts string to byte slice.
+func Bytes(s string) []byte { // alias for common case
+	return Integers[byte](s)
 }

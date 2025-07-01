@@ -40,7 +40,7 @@ func CmpS(a, b string) (r int) {
 //	 0 for a = b
 //	 1 for a > b
 func CmpB(a, b []byte) int {
-	return CmpS(BtoS(a), BtoS(b))
+	return CmpS(String(a), String(b))
 }
 
 // MeanS returns lexicographic average of s1 & s2. It treats ascii specially. The result is
@@ -53,7 +53,7 @@ func MeanS(s1, s2 string) string {
 	} else if len(s2) <= 0 {
 		return ""
 	}
-	i := MeanI(len(s1)+1, len(s2))
+	i := Mean(len(s1)+1, len(s2))
 	avg := make([]byte, i)
 
 	i--
@@ -83,35 +83,25 @@ func MeanS(s1, s2 string) string {
 	}
 	avg[0] = byte(sum >> 1)
 
-	return BtoS(avg)
+	return String(avg)
 }
 
-// MeanU4 returns average of x, y. Mathematically equivalent to floor((x+y)/2).
-func MeanU4(x, y uint32) uint32 {
-	return x&y + (x^y)>>1
+// Signed is the set of multi-byte signed integer types.
+type Signed interface {
+	~int | ~int8 | ~int16 | ~int32 | ~int64
 }
 
-// MeanI4 returns average of x, y. Mathematically equivalent to floor((x+y)/2).
-func MeanI4(x, y int32) int32 {
-	return x&y + (x^y)>>1
+// Unsigned is the set of multi-byte unsigned integer types.
+type Unsigned interface {
+	~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr
 }
 
-// MeanU8 returns average of x, y. Mathematically equivalent to floor((x+y)/2).
-func MeanU8(x, y uint64) uint64 {
-	return x&y + (x^y)>>1
+// Integer is the set of integer types.
+type Integer interface {
+	Signed | Unsigned
 }
 
-// MeanI8 returns average of x, y. Mathematically equivalent to floor((x+y)/2).
-func MeanI8(x, y int64) int64 {
-	return x&y + (x^y)>>1
-}
-
-// MeanU returns average of x, y. Mathematically equivalent to floor((x+y)/2).
-func MeanU(x, y uint) uint {
-	return x&y + (x^y)>>1
-}
-
-// MeanI returns average of x, y. Mathematically equivalent to floor((x+y)/2).
-func MeanI(x, y int) int {
+// Mean returns average of integers x & y, mathematically equivalent to floor((x+y)/2).
+func Mean[T Integer](x, y T) T {
 	return x&y + (x^y)>>1
 }
