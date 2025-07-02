@@ -247,6 +247,53 @@ func TestCmp(t *testing.T) {
 	}
 }
 
+func isort(a, b, c int) (int, int, int) {
+	// insertion sort to have a >= b >= c
+	if b > a {
+		a, b = b, a
+	}
+	if c > b {
+		b, c = c, b
+		if b > a {
+			a, b = b, a
+		}
+	}
+	return a, b, c
+}
+
+func TestMedian(tst *testing.T) {
+	const N = 5
+	for i := -N; i <= N; i++ {
+		for k := -N; k <= N; k++ {
+			for r := -N; r <= N; r++ {
+
+				a, b, c := isort(i, k, r)
+				if m := Median3(i, k, r); m != b {
+					tst.Fatal("expected:", b, "got:", m)
+				}
+
+				for p := -N; p <= N; p++ {
+
+					b, c := b, c
+					// almost insertion sort to have a >= b >= c >= p
+					if p > c {
+						c = p
+						if c > b {
+							b, c = c, b
+							if b > a {
+								b = a
+							}
+						}
+					}
+					if m, e := Median4(i, k, r, p), Mean(b, c); m != e {
+						tst.Fatal("expected:", e, "got:", m)
+					}
+				}
+			}
+		}
+	}
+}
+
 func BenchmarkMeanS(b *testing.B) {
 	res, l := "", len(strTable)-1
 	b.ResetTimer()

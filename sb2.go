@@ -105,3 +105,35 @@ type Integer interface {
 func Mean[T Integer](x, y T) T {
 	return x&y + (x^y)>>1
 }
+
+// Median3 returns median of three integers
+func Median3[T Integer](a, b, c T) T {
+	// almost insertion sort to have a <= b <= c
+	if b < a {
+		a, b = b, a
+	}
+	if c < b {
+		b = c
+		if b < a {
+			b = a
+		}
+	}
+	return b
+}
+
+// Median4 returns median of four integers
+func Median4[T Integer](a, b, c, d T) T {
+	if d < b {
+		d, b = b, d
+	}
+	if c < a {
+		c, a = a, c
+	}
+	if d < c {
+		c = d
+	}
+	if b < a {
+		b = a
+	}
+	return Mean(b, c)
+}
