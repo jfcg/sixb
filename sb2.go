@@ -6,43 +6,6 @@
 
 package sixb
 
-// CmpS compares a, b lexicographically and returns:
-//
-//	-1 for a < b
-//	 0 for a = b
-//	 1 for a > b
-//
-//go:nosplit
-func CmpS(a, b string) (r int) {
-	n, k := len(a), len(b)
-	if n > k {
-		n = k
-		r++
-	} else if n < k {
-		r--
-	}
-
-	for i := 0; i < n; i++ {
-		x, y := a[i], b[i]
-		if x < y {
-			return -1
-		}
-		if x > y {
-			return 1
-		}
-	}
-	return
-}
-
-// CmpB compares a, b lexicographically and returns:
-//
-//	-1 for a < b
-//	 0 for a = b
-//	 1 for a > b
-func CmpB(a, b []byte) int {
-	return CmpS(String(a), String(b))
-}
-
 // MeanS returns lexicographic average of s1 & s2. It treats ascii specially. The result is
 // (len(s1)+len(s2)+1)/2 bytes and may contain unprintable characters or may not be valid utf8.
 //
@@ -86,12 +49,12 @@ func MeanS(s1, s2 string) string {
 	return String(avg)
 }
 
-// Signed is the set of multi-byte signed integer types.
+// Signed is the set of signed integer types.
 type Signed interface {
 	~int | ~int8 | ~int16 | ~int32 | ~int64
 }
 
-// Unsigned is the set of multi-byte unsigned integer types.
+// Unsigned is the set of unsigned integer types.
 type Unsigned interface {
 	~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr
 }

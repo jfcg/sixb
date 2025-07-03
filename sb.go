@@ -50,7 +50,7 @@ var SixbToAnum = [...]byte{97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 1
 	27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47}
 
 // Copy creates a copy of s.
-func Copy[T any](s []T) []T {
+func Copy[S ~[]T, T any](s S) []T {
 	r := make([]T, len(s))
 	copy(r, s)
 	return r
@@ -67,12 +67,12 @@ func InsideTest() bool {
 }
 
 // SamePtr returns true if pointers a & b are same addresses in memory.
-func SamePtr[T, U any](a *T, b *U) bool {
+func SamePtr[P1 ~*T, P2 ~*U, T, U any](a P1, b P2) bool {
 	return unsafe.Pointer(a) == unsafe.Pointer(b)
 }
 
 // PtrToInt converts a pointer value to an integer.
-func PtrToInt[T any](p *T) uint {
+func PtrToInt[P ~*T, T any](p P) uint {
 	return uint(uintptr(unsafe.Pointer(p)))
 }
 
@@ -93,7 +93,7 @@ func toStr(s *string) *InString {
 	return (*InString)(unsafe.Pointer(s))
 }
 
-func toSlc[T any](s *[]T) *InSlice {
+func toSlc[S ~[]T, T any](s *S) *InSlice {
 	return (*InSlice)(unsafe.Pointer(s))
 }
 
@@ -109,34 +109,34 @@ func Cast[T any](s InSlice) []T {
 
 // Slice converts a slice to another slice type, considering
 // element type sizes. Be careful with types that contain pointers.
-func Slice[O, I any](in []I) (out []O) {
+func Slice[U any, S ~[]T, T any](in S) (out []U) {
 	src := toSlc(&in)
 	dst := toSlc(&out)
 	dst.Data = src.Data
-	var s I
-	var d O
-	n, ns, nd := src.Len, Size(s), Size(d)
+	var s T
+	var d U
+	l, ns, nd := src.Len, Size(s), Size(d)
 	if ns != nd {
-		n = ns * n / nd
+		l = ns * l / nd
 	}
-	dst.Len = n
-	dst.Cap = n
+	dst.Len = l
+	dst.Cap = l
 	return
 }
 
 // String converts integer slice (including []byte) to string.
-func String[T Integer](i []T) (s string) {
-	src := toSlc(&i)
-	dst := toStr(&s)
+func String[S ~[]T, T Integer](in S) (out string) {
+	src := toSlc(&in)
+	dst := toStr(&out)
 	dst.Data = src.Data
 	dst.Len = src.Len * Size(T(0))
 	return
 }
 
 // Integers converts string to integer slice (including []byte).
-func Integers[T Integer](s string) (i []T) {
-	src := toStr(&s)
-	dst := toSlc(&i)
+func Integers[T Integer](in string) (out []T) {
+	src := toStr(&in)
+	dst := toSlc(&out)
 	dst.Data = src.Data
 	n := src.Len / Size(T(0))
 	dst.Len = n

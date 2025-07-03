@@ -229,27 +229,6 @@ func TestPtoU8(t *testing.T) {
 	}
 }
 
-var cmpArr = [...]string{"", "A", "AA", "AB", "B", "BA", "BB"}
-
-func TestCmp(t *testing.T) {
-	for i := len(cmpArr) - 1; i >= 0; i-- {
-		s := cmpArr[i]
-		b := []byte(s)
-		if CmpS(s, s) != 0 || CmpB(b, b) != 0 {
-			t.Fatal(s, "must be equal to itself")
-		}
-
-		for k := i - 1; k >= 0; k-- {
-			r := cmpArr[k]
-			a := []byte(r)
-			if CmpS(r, s) != -1 || CmpS(s, r) != 1 ||
-				CmpB(a, b) != -1 || CmpB(b, a) != 1 {
-				t.Fatal(r, "must be less than", s)
-			}
-		}
-	}
-}
-
 func isort(a, b, c int) (int, int, int) {
 	// insertion sort to have a >= b >= c
 	if b > a {
