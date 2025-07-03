@@ -76,23 +76,25 @@ func PtrToInt[T any](p *T) uint {
 	return uint(uintptr(unsafe.Pointer(p)))
 }
 
-type str struct {
+// InString represents internals of a Go string
+type InString struct {
 	Data unsafe.Pointer
 	Len  uint
 }
 
-type slc struct {
+// InSlice represents internals of a Go slice
+type InSlice struct {
 	Data unsafe.Pointer
 	Len  uint
 	Cap  uint
 }
 
-func toStr(s *string) *str {
-	return (*str)(unsafe.Pointer(s))
+func toStr(s *string) *InString {
+	return (*InString)(unsafe.Pointer(s))
 }
 
-func toSlc[T any](s *[]T) *slc {
-	return (*slc)(unsafe.Pointer(s))
+func toSlc[T any](s *[]T) *InSlice {
+	return (*InSlice)(unsafe.Pointer(s))
 }
 
 // Size of x in bytes.
@@ -100,14 +102,23 @@ func Size[T any](x T) uint {
 	return uint(unsafe.Sizeof(x))
 }
 
-// Slice converts a slice to another slice.
+// Cast s to an actual slice type.
+func Cast[T any](s InSlice) []T {
+	return *(*[]T)(unsafe.Pointer(&s))
+}
+
+// Slice converts a slice to another slice type, considering
+// element type sizes. Be careful with types that contain pointers.
 func Slice[O, I any](in []I) (out []O) {
 	src := toSlc(&in)
 	dst := toSlc(&out)
 	dst.Data = src.Data
 	var s I
 	var d O
-	n := Size(s) * src.Len / Size(d)
+	n, ns, nd := src.Len, Size(s), Size(d)
+	if ns != nd {
+		n = ns * n / nd
+	}
 	dst.Len = n
 	dst.Cap = n
 	return
