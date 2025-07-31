@@ -89,8 +89,8 @@ type InSlice struct {
 	Cap  uint
 }
 
-func toStr(s *string) *InString {
-	return (*InString)(unsafe.Pointer(s))
+func toStr[P ~*T, T ~string](p P) *InString {
+	return (*InString)(unsafe.Pointer(p))
 }
 
 func toSlc[S ~[]T, T any](s *S) *InSlice {
@@ -134,17 +134,17 @@ func String[S ~[]T, T Integer](in S) (out string) {
 }
 
 // Integers converts string to integer slice (including []byte).
-func Integers[T Integer](in string) (out []T) {
+func Integers[U Integer, T ~string](in T) (out []U) {
 	src := toStr(&in)
 	dst := toSlc(&out)
 	dst.Data = src.Data
-	n := src.Len / Size(T(0))
+	n := src.Len / Size(U(0))
 	dst.Len = n
 	dst.Cap = n
 	return
 }
 
 // Bytes converts string to byte slice.
-func Bytes(s string) []byte { // alias for common case
+func Bytes[T ~string](s T) []byte { // alias for common case
 	return Integers[byte](s)
 }
