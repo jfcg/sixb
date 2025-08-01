@@ -429,3 +429,76 @@ var i8Table = []int64{
 	-1 << 63, 1<<63 - 1, -1,
 	-1 << 63, 1 - 1<<63, -1 << 63,
 }
+
+func TestSet(t *testing.T) {
+	if Size(None{}) != 0 {
+		t.Fatal("None type should have zero size")
+	}
+
+	s := NewSet[int]()
+	if s.Size() != 0 {
+		t.Fatal("empty set should have no elements")
+	}
+
+	// add 1,3,5 to set
+	for i, n := 1, 1; i <= 5; i, n = i+2, n+1 {
+		s.Add(i)
+		// increasing size?
+		if s := s.Size(); s != n {
+			t.Fatal("expected size:", n, "got:", s)
+		}
+	}
+
+	// already present
+	for i := 5; i >= 1; i -= 2 {
+		s.Add(i)
+		if s := s.Size(); s != 3 {
+			t.Fatal("expected size: 3 got:", s)
+		}
+	}
+
+	// should have 1,3,5
+	for i := 5; i >= 1; i -= 2 {
+		if !s.HasAny(i) || !s.HasAny(i, 2) || !s.HasAny(i, 2, 4) {
+			t.Fatal("set should have:", i)
+		}
+	}
+	if !s.HasAll(3) || !s.HasAll(5, 1) || !s.HasAll(3, 5, 1) || s.HasAll(3, 4, 5, 1) {
+		t.Fatal("set should have: 1,3,5")
+	}
+
+	// should not have 2,4,6,7,8
+	for i := 2; i <= 6; i += 2 {
+		if s.HasAny(i) || s.HasAny(i, 7) || s.HasAny(i, 7, 8) ||
+			s.HasAll(i) || s.HasAll(i, 1) || s.HasAll(i, 3, 5) {
+			t.Fatal("set should not have:", i)
+		}
+	}
+
+	s.Add(4, 2, 6)
+	if s := s.Size(); s != 6 {
+		t.Fatal("expected size: 6 got:", s)
+	}
+	// should have 1,2,3,4,5,6
+	for i := 6; i >= 1; i-- {
+		if !s.HasAny(i) || !s.HasAny(i+1, i) ||
+			!s.HasAny(i, 8) || !s.HasAny(9, i, 8) {
+			t.Fatal("set should have:", i)
+		}
+	}
+	if !s.HasAll(2, 3, 1) || !s.HasAll(5, 4, 2, 3) ||
+		!s.HasAll(3, 5, 1, 2, 4, 6) {
+		t.Fatal("set should have: 1,2,3,4,5,6")
+	}
+
+	s.Remove(1)
+	if s.Size() != 5 || s.HasAny(1) || s.HasAny(7, 1) ||
+		!s.HasAll(6, 4, 2, 5, 3) {
+		t.Fatal("set should not have: 1")
+	}
+	s.Remove(3, 2)
+	if s.Size() != 3 || s.HasAny(2, 1) || s.HasAny(3) ||
+		s.HasAny(3, 1, 2) || !s.HasAll(6, 4, 5) {
+		t.Fatal("set should not have: 1,2,3")
+	}
+}

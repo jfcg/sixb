@@ -1,5 +1,8 @@
 ## sixb [![go.dev ref](https://pkg.go.dev/static/frontend/badge/badge.svg)](https://pkg.go.dev/github.com/jfcg/sixb/v2#pkg-overview) [![report card](https://goreportcard.com/badge/github.com/jfcg/sixb/v2)](https://goreportcard.com/report/github.com/jfcg/sixb/v2) [![coverage](./.github/cover.svg)](https://github.com/jfcg/sixb/actions/workflows/QA.yml) [![OpenSSF badge](https://www.bestpractices.dev/projects/8317/badge)](https://www.bestpractices.dev/projects/8317)
-Some utility functions (`Median*`, `Mean`, `Copy`, `InsideTest`, `Inc`, `Dec`, etc.) including from/to string/slice conversions (`Slice`, `String`, etc.). Use with `import "github.com/jfcg/sixb/v2"`.
+Utility functions (`Median*`, `Mean*`, `Copy`, `InsideTest`, `Inc`, `Dec`, etc.) including from/to string/slice conversions (`Slice`, `String`, etc.) and a `Set` type with a clean api. Use with
+```go
+import "github.com/jfcg/sixb/v2"
+```
 
 `sixb` adheres to [semantic](https://semver.org) versioning.
 
