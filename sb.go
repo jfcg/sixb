@@ -49,10 +49,10 @@ var SixbToAnum = [...]byte{97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 1
 	4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
 	27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47}
 
-// Copy creates a copy of s.
-func Copy[S ~[]T, T any](s S) []T {
-	r := make([]T, len(s))
-	copy(r, s)
+// Copy creates a copy of q.
+func Copy[S ~[]T, T any](q S) S {
+	r := make(S, len(q))
+	copy(r, q)
 	return r
 }
 
@@ -97,11 +97,6 @@ func toSlc[S ~[]T, T any](s *S) *InSlice {
 	return (*InSlice)(unsafe.Pointer(s))
 }
 
-// Size of x in bytes.
-func Size[T any](x T) uint {
-	return uint(unsafe.Sizeof(x))
-}
-
 // Cast s to an actual slice type.
 func Cast[T any](s InSlice) []T {
 	return *(*[]T)(unsafe.Pointer(&s))
@@ -115,7 +110,7 @@ func Slice[U any, S ~[]T, T any](in S) (out []U) {
 	dst.Data = src.Data
 	var s T
 	var d U
-	l, ns, nd := src.Len, Size(s), Size(d)
+	l, ns, nd := src.Len, uint(unsafe.Sizeof(s)), uint(unsafe.Sizeof(d))
 	if ns != nd {
 		l = ns * l / nd
 	}
@@ -129,7 +124,7 @@ func String[S ~[]T, T Integer](in S) (out string) {
 	src := toSlc(&in)
 	dst := toStr(&out)
 	dst.Data = src.Data
-	dst.Len = src.Len * Size(T(0))
+	dst.Len = src.Len * uint(unsafe.Sizeof(T(0)))
 	return
 }
 
@@ -138,7 +133,7 @@ func Integers[U Integer, T ~string](in T) (out []U) {
 	src := toStr(&in)
 	dst := toSlc(&out)
 	dst.Data = src.Data
-	n := src.Len / Size(U(0))
+	n := src.Len / uint(unsafe.Sizeof(U(0)))
 	dst.Len = n
 	dst.Cap = n
 	return

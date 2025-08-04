@@ -9,6 +9,7 @@ package sixb
 import (
 	"cmp"
 	"testing"
+	"unsafe"
 )
 
 // AnumToSixb & SixbToAnum bijection & domain
@@ -80,7 +81,7 @@ func TestSlice(t *testing.T) {
 	p := Slice[uint32](buf)
 	q := Slice[byte](p)
 
-	if Size(buf) != Size(InSlice{}) ||
+	if unsafe.Sizeof(buf) != unsafe.Sizeof(InSlice{}) ||
 		len(y) != 1 || cap(y) != 1 || y[0] != cn2 ||
 		len(p) != 2 || cap(p) != 2 || p[0] != cn0 || p[1] != cn1 ||
 		!SamePtr(&y[0], &p[0]) ||
@@ -138,8 +139,8 @@ func TestString(t *testing.T) {
 	r := Integers[uint32](sml)
 	s := String(r)
 
-	if Size([]byte{}) != Size(InSlice{}) ||
-		Size("") != Size(InString{}) ||
+	if unsafe.Sizeof([]byte{}) != unsafe.Sizeof(InSlice{}) ||
+		unsafe.Sizeof("") != unsafe.Sizeof(InString{}) ||
 		len(a) != 1 || cap(a) != 1 || a[0] != cn2 ||
 		len(r) != 2 || cap(r) != 2 || r[0] != cn0 || r[1] != cn1 ||
 		SamePtr(&a[0], &buf[0]) || !SamePtr(&a[0], &r[0]) ||
@@ -173,7 +174,7 @@ func badStr(a []InString) bool {
 		return true
 	}
 	d := uint(uintptr(a[0].Data))
-	if Size("") == 8 {
+	if unsafe.Sizeof("") == 8 {
 		return len(a) != 3 || d != cn0 || a[0].Len != cn1
 	}
 	return len(a) != 1 || badx(d) || badx(a[0].Len)
@@ -197,7 +198,7 @@ func badSlc(a []InSlice) bool {
 		return true
 	}
 	d := uint(uintptr(a[0].Data))
-	if Size([]byte{}) == 12 {
+	if unsafe.Sizeof([]byte{}) == 12 {
 		return len(a) != 2 || d != cn0 || a[0].Len != cn1 || a[0].Cap != cn0
 	}
 	return len(a) != 1 || badx(d) || badx(a[0].Len) || badx(a[0].Cap)
@@ -224,7 +225,7 @@ func TestPtoU8(t *testing.T) {
 	v1 := PtrToInt(&arr[0])
 	v2 := PtrToInt(&arr[1])
 	if PtrToInt(t) == 0 || v1 == 0 || v2 == 0 ||
-		v1+Size(arr[0]) != v2 {
+		v1+uint(unsafe.Sizeof(arr[0])) != v2 {
 		t.Fatal("Pointer to unsigned integer conversion error")
 	}
 }
@@ -431,7 +432,7 @@ var i8Table = []int64{
 }
 
 func TestSet(t *testing.T) {
-	if Size(None{}) != 0 {
+	if unsafe.Sizeof(None{}) != 0 {
 		t.Fatal("None type should have zero size")
 	}
 
