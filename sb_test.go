@@ -81,8 +81,7 @@ func TestSlice(t *testing.T) {
 	p := Slice[uint32](buf)
 	q := Slice[byte](p)
 
-	if unsafe.Sizeof(buf) != unsafe.Sizeof(InSlice{}) ||
-		len(y) != 1 || cap(y) != 1 || y[0] != cn2 ||
+	if len(y) != 1 || cap(y) != 1 || y[0] != cn2 ||
 		len(p) != 2 || cap(p) != 2 || p[0] != cn0 || p[1] != cn1 ||
 		!SamePtr(&y[0], &p[0]) ||
 		!SamePtr(&y[0], &buf[0]) ||
@@ -96,15 +95,13 @@ func TestSlice2(t *testing.T) {
 	p := Slice[uint32](buf)
 	y := Slice[uint64](p)
 	z := Slice[uint32](y)
-	slc := *toSlc(&z)
-	u := Cast[uint16](slc)
+	u := Slice[uint16](z)
 
 	if len(y) != 1 || cap(y) != 1 || y[0] != cn2 ||
 		len(p) != 2 || cap(p) != 2 || p[0] != cn0 || p[1] != cn1 ||
 		len(z) != 2 || cap(z) != 2 || z[0] != cn0 || z[1] != cn1 ||
 		!SamePtr(&y[0], &p[0]) || !SamePtr(&y[0], &z[0]) ||
-		!SamePtr(&y[0], &buf[0]) ||
-		!SamePtr((*uint32)(slc.Data), &u[0]) {
+		!SamePtr(&y[0], &buf[0]) || !SamePtr(&y[0], &u[0]) {
 		t.Fatal("slice conversion error")
 	}
 }
@@ -116,7 +113,7 @@ func TestSlice3(t *testing.T) {
 
 	if Bytes(s) != nil || Integers[uint32](s) != nil ||
 		Integers[uint64](s) != nil || Slice[uint32](a) != nil ||
-		Slice[uint64](a) != nil || Slice[InString](a) != nil || Slice[InSlice](a) != nil {
+		Slice[uint64](a) != nil || Slice[string](a) != nil || Slice[[]byte](a) != nil {
 		t.Fatal("nil string/slice conversion error")
 	}
 }
@@ -126,8 +123,8 @@ func TestSlice3b(t *testing.T) {
 	var c []uint64
 
 	if String(b) != "" || String(c) != "" || Slice[byte](b) != nil ||
-		Slice[byte](c) != nil || Slice[InString](b) != nil || Slice[InString](c) != nil ||
-		Slice[InSlice](b) != nil || Slice[InSlice](c) != nil {
+		Slice[byte](c) != nil || Slice[string](b) != nil || Slice[string](c) != nil ||
+		Slice[[]byte](b) != nil || Slice[[]byte](c) != nil {
 		t.Fatal("nil string/slice conversion error")
 	}
 }
@@ -139,9 +136,7 @@ func TestString(t *testing.T) {
 	r := Integers[uint32](sml)
 	s := String(r)
 
-	if unsafe.Sizeof([]byte{}) != unsafe.Sizeof(InSlice{}) ||
-		unsafe.Sizeof("") != unsafe.Sizeof(InString{}) ||
-		len(a) != 1 || cap(a) != 1 || a[0] != cn2 ||
+	if len(a) != 1 || cap(a) != 1 || a[0] != cn2 ||
 		len(r) != 2 || cap(r) != 2 || r[0] != cn0 || r[1] != cn1 ||
 		SamePtr(&a[0], &buf[0]) || !SamePtr(&a[0], &r[0]) ||
 		b != sml[:8] || s != sml[:8] {
@@ -168,55 +163,55 @@ func badx(x uint) bool {
 	return uint32(x) != cn0 || uint32(x>>32) != cn1
 }
 
-// bad String slice?
-func badStr(a []InString) bool {
-	if len(a) != cap(a) {
+// bad string slice?
+func badStr(a []string) bool {
+	if len(a) == 0 || len(a) != cap(a) {
 		return true
 	}
-	d := uint(uintptr(a[0].Data))
+	d, l := PtrToInt(unsafe.StringData(a[0])), len(a[0])
 	if unsafe.Sizeof("") == 8 {
-		return len(a) != 3 || d != cn0 || a[0].Len != cn1
+		return len(a) != 3 || d != cn0 || l != cn1
 	}
-	return len(a) != 1 || badx(d) || badx(a[0].Len)
+	return len(a) != 1 || badx(d) || badx(uint(l))
 }
 
-// []String conversions
-func TestString3(t *testing.T) {
+// []string conversions
+func TestSlice4(t *testing.T) {
 	buf := []byte(big)
-	a := Slice[InString](buf)
-	b := Slice[InString](Slice[uint64](buf))
-	c := Slice[InString](Slice[uint32](buf))
+	a := Slice[string](buf)
+	b := Slice[string](Slice[uint64](buf))
+	c := Slice[string](Slice[uint32](buf))
 
 	if badStr(a) || badStr(b) || badStr(c) {
-		t.Fatal("String slice conversion error")
+		t.Fatal("string slice conversion error")
 	}
 }
 
-// bad Slice slice?
-func badSlc(a []InSlice) bool {
-	if len(a) != cap(a) {
+// bad []byte slice?
+func badSlc(a [][]byte) bool {
+	if len(a) == 0 || len(a) != cap(a) {
 		return true
 	}
-	d := uint(uintptr(a[0].Data))
+	d, l, c := PtrToInt(unsafe.SliceData(a[0])), len(a[0]), cap(a[0])
 	if unsafe.Sizeof([]byte{}) == 12 {
-		return len(a) != 2 || d != cn0 || a[0].Len != cn1 || a[0].Cap != cn0
+		return len(a) != 2 || d != cn0 || l != cn1 || c != cn0
 	}
-	return len(a) != 1 || badx(d) || badx(a[0].Len) || badx(a[0].Cap)
+	return len(a) != 1 || badx(d) || badx(uint(l)) || badx(uint(c))
 }
 
-// []String conversions
-func TestString4(t *testing.T) {
+// [][]byte conversions
+func TestSlice5(t *testing.T) {
 	buf := []byte(big)
-	a := Slice[InSlice](buf)
-	b := Slice[InSlice](Slice[uint64](buf))
-	c := Slice[InSlice](Slice[uint32](buf))
+	a := Slice[[]byte](buf)
+	b := Slice[[]byte](Slice[uint64](buf))
+	c := Slice[[]byte](Slice[uint32](buf))
 
 	if badSlc(a) || badSlc(b) || badSlc(c) {
 		t.Fatal("Slice slice conversion error")
 	}
 }
 
-func TestPtoU8(t *testing.T) {
+func TestPtrToInt(t *testing.T) {
 	var p *int
 	if PtrToInt(p) != 0 {
 		t.Fatal("Nil pointer must convert to to zero")
@@ -279,11 +274,9 @@ func TestMedian(tst *testing.T) {
 
 func BenchmarkMeanS(b *testing.B) {
 	res, l := "", len(strTable)-1
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		res = MeanS(strTable[l-2], strTable[l-1])
 	}
-	b.StopTimer()
 	if res != strTable[l] {
 		b.Fatal("MeanS error")
 	}

@@ -49,10 +49,10 @@ var SixbToAnum = [...]byte{97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 1
 	4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
 	27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47}
 
-// Copy creates a copy of q.
-func Copy[S ~[]T, T any](q S) S {
-	r := make(S, len(q))
-	copy(r, q)
+// Copy creates a copy of a slice.
+func Copy[S ~[]T, T any](slc S) S {
+	r := make(S, len(slc))
+	copy(r, slc)
 	return r
 }
 
@@ -71,75 +71,37 @@ func SamePtr[P1 ~*T, P2 ~*U, T, U any](a P1, b P2) bool {
 	return unsafe.Pointer(a) == unsafe.Pointer(b)
 }
 
-// PtrToInt converts a pointer value to an integer.
-func PtrToInt[P ~*T, T any](p P) uint {
-	return uint(uintptr(unsafe.Pointer(p)))
-}
-
-// InString represents internals of a Go string
-type InString struct {
-	Data unsafe.Pointer
-	Len  uint
-}
-
-// InSlice represents internals of a Go slice
-type InSlice struct {
-	Data unsafe.Pointer
-	Len  uint
-	Cap  uint
-}
-
-func toStr[P ~*T, T ~string](p P) *InString {
-	return (*InString)(unsafe.Pointer(p))
-}
-
-func toSlc[S ~[]T, T any](s *S) *InSlice {
-	return (*InSlice)(unsafe.Pointer(s))
-}
-
-// Cast s to an actual slice type.
-func Cast[T any](s InSlice) []T {
-	return *(*[]T)(unsafe.Pointer(&s))
+// PtrToInt converts a pointer to an integer.
+func PtrToInt[P ~*T, T any](ptr P) uint {
+	return uint(uintptr(unsafe.Pointer(ptr)))
 }
 
 // Slice converts a slice to another slice type, considering
 // element type sizes. Be careful with types that contain pointers.
-func Slice[U any, S ~[]T, T any](in S) (out []U) {
-	src := toSlc(&in)
-	dst := toSlc(&out)
-	dst.Data = src.Data
-	var s T
-	var d U
-	l, ns, nd := src.Len, uint(unsafe.Sizeof(s)), uint(unsafe.Sizeof(d))
-	if ns != nd {
-		l = ns * l / nd
+func Slice[U any, S ~[]T, T any](slc S) []U {
+	var t T
+	var u U
+	l, st, su := len(slc), int(unsafe.Sizeof(t)), int(unsafe.Sizeof(u))
+	if st != su {
+		l = st * l / su
 	}
-	dst.Len = l
-	dst.Cap = l
-	return
+	p := unsafe.Pointer(unsafe.SliceData(slc))
+	return unsafe.Slice((*U)(p), l)
 }
 
 // String converts integer slice (including []byte) to string.
-func String[S ~[]T, T Integer](in S) (out string) {
-	src := toSlc(&in)
-	dst := toStr(&out)
-	dst.Data = src.Data
-	dst.Len = src.Len * uint(unsafe.Sizeof(T(0)))
-	return
+func String[S ~[]T, T Integer](slc S) string {
+	p := unsafe.Pointer(unsafe.SliceData(slc))
+	return unsafe.String((*byte)(p), len(slc)*int(unsafe.Sizeof(T(0))))
 }
 
 // Integers converts string to integer slice (including []byte).
-func Integers[U Integer, T ~string](in T) (out []U) {
-	src := toStr(&in)
-	dst := toSlc(&out)
-	dst.Data = src.Data
-	n := src.Len / uint(unsafe.Sizeof(U(0)))
-	dst.Len = n
-	dst.Cap = n
-	return
+func Integers[U Integer, T ~string](str T) []U {
+	p := unsafe.Pointer(unsafe.StringData(string(str)))
+	return unsafe.Slice((*U)(p), len(str)/int(unsafe.Sizeof(U(0))))
 }
 
 // Bytes converts string to byte slice.
-func Bytes[T ~string](s T) []byte { // alias for common case
-	return Integers[byte](s)
+func Bytes[T ~string](str T) []byte { // alias for common case
+	return Integers[byte](str)
 }
