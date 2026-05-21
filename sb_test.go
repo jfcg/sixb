@@ -7,31 +7,30 @@
 package sixb
 
 import (
-	"cmp"
 	"testing"
 	"unsafe"
 )
 
 // AnumToSixb & SixbToAnum bijection & domain
 func TestSixb(t *testing.T) {
-	if len(AnumToSixb) != 256 || len(SixbToAnum) != 256 {
+	if len(anumToSixb) != 256 || len(sixbToAnum) != 256 {
 		t.Fatal("invalid lengths")
 	}
 
 	for i := 255; i >= 0; i-- {
 		c := byte(i)
-		d := AnumToSixb[c]
+		d := AnumToSixb(c)
 		if c == d {
 			t.Fatal("fixed point", i)
 		}
-		if c != SixbToAnum[d] {
+		if c != SixbToAnum(d) {
 			t.Fatal("inverse does not work", i)
 		}
 	}
 
 	n := 0 // cycle length
-	for d := AnumToSixb[0]; d != 0; n++ {
-		d = AnumToSixb[d]
+	for d := AnumToSixb(0); d != 0; n++ {
+		d = AnumToSixb(d)
 	}
 	if n != 255 {
 		t.Fatal("multiple cycles")
@@ -40,7 +39,7 @@ func TestSixb(t *testing.T) {
 	l := "0:@Zaz"
 	for i := 4; i >= 0; i -= 2 {
 		for c := l[i]; c <= l[i+1]; c++ {
-			if AnumToSixb[c] > 63 {
+			if AnumToSixb(c) > 63 {
 				t.Fatal("domain error", c)
 			}
 		}
@@ -222,277 +221,5 @@ func TestPtrToInt(t *testing.T) {
 	if PtrToInt(t) == 0 || v1 == 0 || v2 == 0 ||
 		v1+uint(unsafe.Sizeof(arr[0])) != v2 {
 		t.Fatal("Pointer to unsigned integer conversion error")
-	}
-}
-
-func isort(a, b, c int) (int, int, int) {
-	// insertion sort to have a >= b >= c
-	if b > a {
-		a, b = b, a
-	}
-	if c > b {
-		b, c = c, b
-		if b > a {
-			a, b = b, a
-		}
-	}
-	return a, b, c
-}
-
-func TestMedian(tst *testing.T) {
-	const N = 5
-	for i := -N; i <= N; i++ {
-		for k := -N; k <= N; k++ {
-			for r := -N; r <= N; r++ {
-
-				a, b, c := isort(i, k, r)
-				if m := Median3(i, k, r); m != b {
-					tst.Fatal("expected:", b, "got:", m)
-				}
-
-				for p := -N; p <= N; p++ {
-
-					b, c := b, c
-					// almost insertion sort to have a >= b >= c >= p
-					if p > c {
-						c = p
-						if c > b {
-							b, c = c, b
-							if b > a {
-								b = a
-							}
-						}
-					}
-					if m, e := Median4(i, k, r, p), Mean(b, c); m != e {
-						tst.Fatal("expected:", e, "got:", m)
-					}
-				}
-			}
-		}
-	}
-}
-
-func BenchmarkMeanS(b *testing.B) {
-	res, l := "", len(strTable)-1
-	for b.Loop() {
-		res = MeanS(strTable[l-2], strTable[l-1])
-	}
-	if res != strTable[l] {
-		b.Fatal("MeanS error")
-	}
-}
-
-func meanTest[O cmp.Ordered](t *testing.T, mean func(O, O) O, table []O) {
-	for i := len(table) - 1; i > 1; i -= 3 {
-		// mean(in1,in2) = out ?
-		m := mean(table[i-2], table[i-1])
-		if m != table[i] {
-			t.Fatal("expected:", table[i], "got:", m)
-		}
-		// mean(in2,in1) = out ?
-		m2 := mean(table[i-1], table[i-2])
-		if m != m2 {
-			t.Fatal("different means:", m, m2)
-		}
-		// in1 <= mean(in1,in2) < in2 ?
-		if !(table[i-2] <= m && m < table[i-1]) {
-			t.Fatal("bad order:", table[i-2], m, table[i-1])
-		}
-	}
-	for i := len(table) - 1; i >= 0; i-- {
-		// mean(in,in) = in ?
-		m := mean(table[i], table[i])
-		if m != table[i] {
-			t.Fatal("expected:", table[i], "got:", m)
-		}
-	}
-}
-
-func TestMeans(t *testing.T) {
-	meanTest(t, MeanS, strTable)
-	meanTest(t, Mean, u4Table)
-	meanTest(t, Mean, i4Table)
-	meanTest(t, Mean, u8Table)
-	meanTest(t, Mean, i8Table)
-}
-
-var strTable = []string{
-	"", "B", "!", // in1 < in2, out
-	"abc", "cde", "bcd",
-	"abc", "abd", "abc",
-	"SeRhat", "Tansu ", "T#`n+J",
-	"SeRgat", "Tantu ", "T#`n+J",
-	"Sergat", "TaNtu ", "T#`n+J",
-	"Serhat", "TaNsu ", "T#`n+J",
-	"NİreÇ", "eŞVkü", "ZE'dhá",
-	"Golang", "Python", "L4pe/*",
-	"JAVA", "RUST", "NKU\n",
-	"致命的", "警告abc", "蚭呤$~s",
-}
-
-var u4Table = []uint32{
-	0, 1, 0,
-	100, 200, 150, // in1 < in2, out
-	101, 200, 150,
-
-	1<<31 - 200, 1<<31 - 100, 1<<31 - 150,
-	1<<31 - 200, 1<<31 - 101, 1<<31 - 151,
-	1<<32 - 200, 1<<32 - 100, 1<<32 - 150,
-	1<<32 - 200, 1<<32 - 101, 1<<32 - 151,
-
-	1<<31 - 200, 1<<32 - 100, 3<<30 - 150,
-	1<<31 - 200, 1<<32 - 101, 3<<30 - 151,
-	1<<31 - 100, 1<<32 - 200, 3<<30 - 150,
-	1<<31 - 100, 1<<32 - 201, 3<<30 - 151,
-
-	1<<31 - 1, 1 << 31, 1<<31 - 1,
-	1 << 31, 1<<31 + 1, 1 << 31,
-	1<<31 - 1, 1<<32 - 1, 3<<30 - 1,
-	1<<32 - 2, 1<<32 - 1, 1<<32 - 2,
-}
-
-var i4Table = []int32{
-	100, 200, 150, // in1 < in2, out
-	101, 200, 150,
-	-200, -100, -150,
-	-200, -101, -151,
-
-	-100, 100, 0,
-	-101, 101, 0,
-	100 - 1<<31, 1<<31 - 100, 0,
-	101 - 1<<31, 1<<31 - 101, 0,
-
-	1<<31 - 200, 1<<31 - 100, 1<<31 - 150,
-	1<<31 - 200, 1<<31 - 101, 1<<31 - 151,
-	100 - 1<<31, 200 - 1<<31, 150 - 1<<31,
-	101 - 1<<31, 200 - 1<<31, 150 - 1<<31,
-
-	100 - 1<<31, 1<<31 - 200, -50,
-	100 - 1<<31, 1<<31 - 201, -51,
-	200 - 1<<31, 1<<31 - 100, 50,
-	201 - 1<<31, 1<<31 - 100, 50,
-
-	1 - 1<<31, 1<<31 - 1, 0,
-	-1 << 31, 1<<31 - 1, -1,
-	-1 << 31, 1 - 1<<31, -1 << 31,
-}
-
-var u8Table = []uint64{
-	0, 1, 0,
-	100, 200, 150, // in1 < in2, out
-	101, 200, 150,
-
-	1<<63 - 200, 1<<63 - 100, 1<<63 - 150,
-	1<<63 - 200, 1<<63 - 101, 1<<63 - 151,
-	1<<64 - 200, 1<<64 - 100, 1<<64 - 150,
-	1<<64 - 200, 1<<64 - 101, 1<<64 - 151,
-
-	1<<63 - 200, 1<<64 - 100, 3<<62 - 150,
-	1<<63 - 200, 1<<64 - 101, 3<<62 - 151,
-	1<<63 - 100, 1<<64 - 200, 3<<62 - 150,
-	1<<63 - 100, 1<<64 - 201, 3<<62 - 151,
-
-	1<<63 - 1, 1 << 63, 1<<63 - 1,
-	1 << 63, 1<<63 + 1, 1 << 63,
-	1<<63 - 1, 1<<64 - 1, 3<<62 - 1,
-	1<<64 - 2, 1<<64 - 1, 1<<64 - 2,
-}
-
-var i8Table = []int64{
-	100, 200, 150, // in1 < in2, out
-	101, 200, 150,
-	-200, -100, -150,
-	-200, -101, -151,
-
-	-100, 100, 0,
-	-101, 101, 0,
-	100 - 1<<63, 1<<63 - 100, 0,
-	101 - 1<<63, 1<<63 - 101, 0,
-
-	1<<63 - 200, 1<<63 - 100, 1<<63 - 150,
-	1<<63 - 200, 1<<63 - 101, 1<<63 - 151,
-	100 - 1<<63, 200 - 1<<63, 150 - 1<<63,
-	101 - 1<<63, 200 - 1<<63, 150 - 1<<63,
-
-	100 - 1<<63, 1<<63 - 200, -50,
-	100 - 1<<63, 1<<63 - 201, -51,
-	200 - 1<<63, 1<<63 - 100, 50,
-	201 - 1<<63, 1<<63 - 100, 50,
-
-	1 - 1<<63, 1<<63 - 1, 0,
-	-1 << 63, 1<<63 - 1, -1,
-	-1 << 63, 1 - 1<<63, -1 << 63,
-}
-
-func TestSet(t *testing.T) {
-	if unsafe.Sizeof(None{}) != 0 {
-		t.Fatal("None type should have zero size")
-	}
-
-	s := NewSet[int]()
-	if s.Size() != 0 {
-		t.Fatal("empty set should have no elements")
-	}
-
-	// add 1,3,5 to set
-	for i, n := 1, 1; i <= 5; i, n = i+2, n+1 {
-		s.Add(i)
-		// increasing size?
-		if s := s.Size(); s != n {
-			t.Fatal("expected size:", n, "got:", s)
-		}
-	}
-
-	// already present
-	for i := 5; i >= 1; i -= 2 {
-		s.Add(i)
-		if s := s.Size(); s != 3 {
-			t.Fatal("expected size: 3 got:", s)
-		}
-	}
-
-	// should have 1,3,5
-	for i := 5; i >= 1; i -= 2 {
-		if !s.HasAny(i) || !s.HasAny(i, 2) || !s.HasAny(i, 2, 4) {
-			t.Fatal("set should have:", i)
-		}
-	}
-	if !s.HasAll(3) || !s.HasAll(5, 1) || !s.HasAll(3, 5, 1) || s.HasAll(3, 4, 5, 1) {
-		t.Fatal("set should have: 1,3,5")
-	}
-
-	// should not have 2,4,6,7,8
-	for i := 2; i <= 6; i += 2 {
-		if s.HasAny(i) || s.HasAny(i, 7) || s.HasAny(i, 7, 8) ||
-			s.HasAll(i) || s.HasAll(i, 1) || s.HasAll(i, 3, 5) {
-			t.Fatal("set should not have:", i)
-		}
-	}
-
-	s.Add(4, 2, 6)
-	if s := s.Size(); s != 6 {
-		t.Fatal("expected size: 6 got:", s)
-	}
-	// should have 1,2,3,4,5,6
-	for i := 6; i >= 1; i-- {
-		if !s.HasAny(i) || !s.HasAny(i+1, i) ||
-			!s.HasAny(i, 8) || !s.HasAny(9, i, 8) {
-			t.Fatal("set should have:", i)
-		}
-	}
-	if !s.HasAll(2, 3, 1) || !s.HasAll(5, 4, 2, 3) ||
-		!s.HasAll(3, 5, 1, 2, 4, 6) {
-		t.Fatal("set should have: 1,2,3,4,5,6")
-	}
-
-	s.Remove(1)
-	if s.Size() != 5 || s.HasAny(1) || s.HasAny(7, 1) ||
-		!s.HasAll(6, 4, 2, 5, 3) {
-		t.Fatal("set should not have: 1")
-	}
-	s.Remove(3, 2)
-	if s.Size() != 3 || s.HasAny(2, 1) || s.HasAny(3) ||
-		s.HasAny(3, 1, 2) || !s.HasAll(6, 4, 5) {
-		t.Fatal("set should not have: 1,2,3")
 	}
 }

@@ -8,7 +8,7 @@ package sixb
 
 import "cmp"
 
-// MeanS returns lexicographic average of s1 & s2. It treats ascii specially. The result is
+// MeanS returns lexicographic average of s1 and s2. It treats ascii specially. The result is
 // (len(s1)+len(s2)+1)/2 bytes and may contain unprintable characters or may not be valid utf8.
 //
 //go:nosplit
@@ -70,7 +70,8 @@ type Float interface {
 	~float32 | ~float64
 }
 
-// Mean returns average of integers x & y, mathematically equivalent to floor((x+y)/2).
+// Mean returns average of integers x and y, mathematically equivalent to floor((x+y)/2).
+// This function works on the whole domain of (x,y) pairs, unlike (x+y)/2.
 func Mean[T Integer](x, y T) T {
 	return x&y + (x^y)>>1
 }
@@ -105,60 +106,4 @@ func Median4[T Integer](a, b, c, d T) T {
 		b = a
 	}
 	return Mean(b, c)
-}
-
-// None represents empty struct with zero size
-type None struct{}
-
-// Set of elements of type K. Create empty set with
-//
-//	s := Set[K]{}
-type Set[K comparable] map[K]None
-
-// NewSet creates a set from given elements
-func NewSet[K comparable](els ...K) Set[K] {
-	s := Set[K]{}
-	s.Add(els...)
-	return s
-}
-
-// Size returns number of elements in set
-func (s Set[K]) Size() int {
-	return len(s)
-}
-
-// HasAny returns true only if set contains any of given elements.
-// If els is empty, it returns false by definition.
-func (s Set[K]) HasAny(els ...K) bool {
-	for _, e := range els {
-		if _, ok := s[e]; ok {
-			return true
-		}
-	}
-	return false
-}
-
-// HasAll returns true only if set contains all of given elements.
-// If els is empty, it returns true by definition.
-func (s Set[K]) HasAll(els ...K) bool {
-	for _, e := range els {
-		if _, ok := s[e]; !ok {
-			return false
-		}
-	}
-	return true
-}
-
-// Add element(s) to set
-func (s Set[K]) Add(els ...K) {
-	for _, e := range els {
-		s[e] = None{}
-	}
-}
-
-// Remove element(s) from set
-func (s Set[K]) Remove(els ...K) {
-	for _, e := range els {
-		delete(s, e)
-	}
 }
